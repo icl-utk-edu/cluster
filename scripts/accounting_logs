@@ -1,0 +1,4 @@
+#!/bin/sh
+
+mysql -h mysql.local -u gridmaster -p sge_accounting 
+

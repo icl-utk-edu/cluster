@@ -1,0 +1,4 @@
+#!/bin/sh
+
+sqlite3 -init /newton/scripts/sqlite.init /newton/scripts/cluster.db "$@"
+

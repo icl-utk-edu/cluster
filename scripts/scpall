@@ -1,0 +1,50 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+use lib "/newton/scripts";
+use Newton;
+use Data::Dumper;
+
+Getopt::Long::Configure("bundling");
+my %opt;
+my $ok = GetOptions(
+	\%opt,
+	'type|t=s',
+	'nodes|n=s',
+	'help|h',
+	'v',
+	);
+
+my ($from, $to) =  @ARGV;
+if(not $ok or not -e $from or not defined $to or $opt{help}){
+	help();
+	}
+
+my $nodes = Newton::nodes(%opt);
+my @nodes = map {$_->[0]} @$nodes;
+for(@nodes){
+  my $node = $_;
+  print "$node ";
+  my $ok = system("scp -Bq $from $node:$to");
+  my $msg = $ok ? 'fail' : 'done' ;
+  print "$msg\n";
+  }
+
+
+sub help {
+        print <<End
+This program copies a file to a number of machines in the cluster.
+Usage:  scpall [options] <from file> <to file>
+
+Options include:
+	-t, --type     - Type of machine to copy to (pxe config file name)
+	-n, --nodes    - String or regex that describes the subset of node 
+                         names to copy to.
+	--help         - Show this message
+End
+;
+        exit;
+        }
+

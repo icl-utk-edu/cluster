@@ -1,0 +1,36 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use lib "/newton/scripts";
+use Newton;
+
+#die "Be careful!";
+
+unless($ENV{USER} eq 'root'){
+  die "Please run this as root.\n";
+  }
+
+my $dir = "/newton/scripts";
+
+my $db = Newton::db();
+
+my ($name_from, $name_to) = @ARGV;
+die unless defined $name_to;
+
+my ($systemid) = $db->selectrow_array('SELECT systemid FROM systems WHERE name=?', undef, $name_from);
+print "systemid=$systemid\n";
+my $addresses = $db->selectcol_arrayref('SELECT addressid FROM addresses WHERE system=?', undef, $name_from);
+$db->do('update addresses set system=NULL WHERE system=?', undef, $name_from);
+$db->do('update systems set name=NULL WHERE name=?', undef, $name_from);
+$db->do('update addresses set name=? where name=?', undef, $name_to, $name_from);
+$db->do('update systems set name=? where systemid=?', undef, $name_to, $systemid);
+for(@$addresses){
+  my $id = $_;
+  print "addressid=$id\n";
+  $db->do('update addresses set system=? where addressid=?', undef, $name_to, $id);
+}
+print "You may need to rename any secondary interfaces on this system.\n";
+#$db->do('update addresses set name='omega2-bmc.local' where addressid=525;');
+
+

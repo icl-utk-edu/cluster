@@ -1,0 +1,60 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+use lib '/newton/scripts';
+use Newton;
+use File::Temp 'tempfile';
+use Mail::Send;
+use Data::Dumper;
+
+my ($file, $username, @params) = @ARGV;
+if(! -e $file){
+  $username = $file;
+  undef $file;
+}
+
+die "Error: must provide a valid user ID.\n" unless defined $username;
+
+my ($email) = Newton::selectrow_array('SELECT email FROM users WHERE username=?', $username);
+die "No email address found for user $username." unless defined $email;
+
+
+my (undef, $tmpfile) = tempfile(OPEN=>0);
+if(not defined $file){
+  system('vim', $tmpfile);
+} else {
+  $tmpfile = $file;
+}
+open(IN, $tmpfile) or die "No email content found: $!";
+my $content = join('', <IN>);
+close IN;
+unlink $tmpfile unless defined $file;
+
+my $num_params = count_param($content);
+die "Not enough parameters provided." if @params < $num_params;
+die "Too many parameters provided." if @params > $num_params;
+
+my $c = 1;
+for(@params){
+  $content =~ s/\$$c/$_/gs;
+  $c++;
+}
+
+print "Sending message to $email\n";
+
+my $msg = Mail::Send->new(Subject=>'Message from Newton HPC', To=>$email, Cc=>$Newton::adminEmail);
+$msg->add('Reply-To', $Newton::adminEmail);
+my $fh = $msg->open('sendmail');
+print $fh $content;
+$fh->close() or warn "Error sending message to $email";
+
+sub count_param {
+  my $text = shift;
+  my $max = 0;
+  while($text =~ s/\$(\d+)//s){
+    $max = $1 if $1 > $max;
+  }
+  return $max;
+}

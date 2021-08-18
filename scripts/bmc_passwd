@@ -1,0 +1,9 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use lib '/newton/scripts';
+use Newton;
+
+print Newton::bmc_passwd();
+print "\n";

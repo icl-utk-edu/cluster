@@ -1,0 +1,28 @@
+#!/usr/bin/perl
+#
+# Parses the date field in syslog messages and returns lines from the last x seconds
+#
+
+use strict;
+use warnings;
+use Date::Parse 'str2time';
+
+my ($seconds, $file) = @ARGV;
+die "Usage: grep_time <seconds> [<filename>]\n" unless defined $seconds;
+
+my $now = time();
+my $FH = *STDIN;
+if(defined $file){
+  open(IN, $file) or die $!;
+  $FH = *IN;
+  }
+while(<$FH>){
+  # Mar 12 16:43:14
+  my ($date) = /^(\S+\s+\d+\s+[\d:]+)/;
+  my $time = str2time($date);
+  next if $time < $now - $seconds;
+  next if $time > $now;
+  print $_;
+  }
+close $FH;
+

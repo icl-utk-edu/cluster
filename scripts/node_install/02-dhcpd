@@ -1,0 +1,85 @@
+#!/usr/bin/perl
+# rebuild the dhcpd.conf file from the nodes DB
+
+use strict;
+use warnings;
+use lib "/newton/scripts";
+use Newton;
+use HTML::Template;
+use Data::Dumper;
+
+my $basefile = "/newton/files/dhcpd";
+my $outfile = "$basefile.conf";
+my $tmpl = "$basefile.tmpl";
+
+my $db = Newton::db();
+my @domains = Newton::arrayhashref($db, 'SELECT * from domains');
+my @domainsearch = map {$_->{domain}} @domains;
+my $count = 0;
+for(@domains){
+  my $info = $_;
+  my %ips = allIPs($info);
+  my $ip1 = Newton::ip2i($info->{ip1});
+  my $ip2 = Newton::ip2i($info->{ip2});
+  my @nodes = Newton::arrayhashref($db,
+    'SELECT name,ip,mac FROM addresses WHERE ip>=? AND ip<=?',
+    $ip1, $ip2,
+    );
+  for(@nodes){
+    $_->{host} = 'host-' . $count++;
+    $_->{ip} = Newton::ipaddr($_->{ip});
+    $_->{mac} = Newton::macaddr($_->{mac}) if $_->{mac};
+    $ips{$_->{ip}} = 1;
+    }
+  $_->{nodes} = \@nodes;
+  $_->{broadcast} = broadcast($info->{net}, $info->{netmask});
+  $_->{domainsearch} = join(', ', map {"\"$_\""} ($_->{domain},@domainsearch));
+  if($info->{dynamic} == 0){
+    $_->{freeIPs} = [];
+    next;
+    }
+  $_->{freeIPs} = [map {{ip=>$_,allocated=>$ips{$_}}} keys %ips];
+  }
+
+@domains = grep {scalar(@{ $_->{nodes} } ) } @domains;
+
+Newton::tmpl(
+  "$basefile.tmpl", "${basefile}.conf",
+  subnets => \@domains,
+  );
+
+system('/usr/sbin/dhcpd','-t','-q','-cf',"$basefile.conf");
+die "Error in dhcpd.conf!!\n" if $?;
+
+`/sbin/service dhcpd stop`;
+
+open(OO, "+> /var/lib/dhcp/dhcpd.leases");
+close OO;
+
+my $dest = (-d '/etc/dhcp') ? '/etc/dhcp' : '/etc';
+unlink("$dest/dhcpd.conf");
+`cp $basefile.conf $dest/dhcpd.conf`;
+
+`/sbin/service dhcpd start`;
+
+sub allIPs {
+  my $in = shift;
+  my ($i1, $i2) = map {Newton::ip2i($_)} ($in->{ip1}, $in->{ip2});
+  my %out;
+  for($i1..$i2){
+    $out{ Newton::i2ip($_) } = 0;
+    }
+  return %out;
+  }
+
+sub broadcast {
+  my ($net, $mask) = @_;
+  my @n = split(/\./, $net);
+  my @m = split(/\./, $mask);
+  for(0..3){
+    $n[$_] = ($n[$_]*1 & $m[$_]*1) ^ (255 & ~ $m[$_]*1);
+    }
+  return join('.', @n);
+  }
+
+

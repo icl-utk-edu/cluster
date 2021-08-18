@@ -1,0 +1,34 @@
+#!/usr/bin/perl
+#
+# For a given nodeset, find all the serial numbers and put them into the database
+# 
+use strict;
+use warnings;
+use Newton;
+
+die "Must run as root.\n" unless $ENV{USER} eq 'root';
+
+my $nodeset = shift @ARGV;
+die "Usage: $0 <nodeset>\n" unless defined $nodeset;
+my $db = Newton::db();
+my $nodes = $db->selectcol_arrayref(
+  'SELECT s.name FROM systems s JOIN addresses a USING(name) WHERE a.nodeset=? AND serialnumber IS NULL',
+  undef, $nodeset,
+  );
+for(@$nodes){
+  my $name = $_;
+  my @out = Newton::ssh('dmidecode -s system-serial-number', $name);
+  my $serial = pop @out;
+  chomp $serial;
+  if($serial !~ /^\w+$/){
+    warn "Error getting serial for $name: $serial\n";
+    next;
+  }
+  print "Setting serial for $name to $serial\n";
+  $db->do('UPDATE systems SET serialnumber=? WHERE name=?', 
+    undef, $serial, $name,
+  );
+}
+
+$db->disconnect();
+

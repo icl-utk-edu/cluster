@@ -1,0 +1,17 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Newton;
+
+my $system = shift @ARGV || die;
+
+my $db = Newton::db();
+my ($ip) = $db->selectrow_array(
+  'SELECT ip FROM addresses WHERE system=? and type="bmc"',
+  undef, $system,
+  );
+die "Error: No BMC address found.\n" unless defined $ip;
+print Newton::ipaddr($ip)."\n";
+$db->disconnect();
+

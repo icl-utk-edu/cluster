@@ -1,0 +1,69 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Newton;
+use Getopt::Long;
+
+my $YES = 0;
+my $ok = GetOptions(
+  'y|yes' => \$YES,
+  );
+die "Invalid option.\n" unless $ok;
+
+my $server = 'omega0-10ge.local';
+
+my $data = Newton::selectall_arrayref(
+  q/SELECT u.username,p.project,uid,gid 
+    FROM membership m 
+    LEFT JOIN actions a ON tabid=m.id 
+    LEFT JOIN projects p ON m.project=p.project 
+    LEFT JOIN users u ON u.username=m.username 
+    WHERE a.status="pending account creation"/,
+  );
+if(@ARGV){
+  my $username = shift @ARGV;
+  $data = Newton::selectall_arrayref(
+    q/SELECT u.username,p.project,uid,gid 
+      FROM membership m 
+      LEFT JOIN projects p ON m.project=p.project
+      LEFT JOIN users u ON u.username=? WHERE m.username=u.username/,
+      $username,
+    );
+  }
+
+`sge_setup_projects`;
+
+user: for(@$data){
+  my ($username, $project, $uid, $gid) = @$_;
+  my $test = Newton::ldap($username, 'uid');
+  unless(defined $test){
+    warn "User \"$username\" not found in LDAP, skipping.\n";
+    next;
+    }
+  while(1){
+    print "Create user $username ($uid) in project $project ($gid)? [y/n] ";
+    if($YES){
+      print "Y\n";
+      last;
+      } else {
+      chomp( my $ans = lc(<STDIN>) );
+      last if $ans eq 'y';
+      next 'user' if $ans eq 'n';
+      }
+    }
+  add_user($username, $project, $uid, $gid);
+  }
+
+
+sub add_user {
+  my ($username, $project, $uid, $gid) = @_;
+
+  print "   Rebuilding NIS account files\n";
+  `/newton/scripts/rebuild_users`;
+
+  print "   SSHing to $server to create home directory\n";
+  system("sudo ssh $server /mnt/home/skel/create_home $username $uid $gid");
+
+  Newton::setGridUserProject($username, $project);
+  }

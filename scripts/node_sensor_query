@@ -1,0 +1,80 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+use lib "/newton/scripts";
+use Newton;
+
+Getopt::Long::Configure("bundling");
+my %opt;
+my $ok = GetOptions(
+	\%opt,
+	'type|t=s',
+	'nodes|n=s',
+	'help|h',
+	);
+
+my $specific = @ARGV ?"get $ARGV[0]":"";
+
+if(not $ok or $opt{help}){
+  help();
+  }
+
+my $passwd = Newton::get_passwd();
+my $nodes = Newton::nodes(%opt);
+my @child;
+for(@$nodes){
+  my ($name, $ip_bmc) = (@$_)[0,6];
+  my $pid = fork;
+  if($pid){
+    push @child, $pid;
+    next;
+    }
+  next unless defined $ip_bmc;
+  my @sel = Newton::ipmi("sensor $specific", $ip_bmc, $passwd);
+  my %readings;
+  for(@sel){
+    chomp;
+    s/\s+//g;
+    tr/A-Z/a-z/;
+    my ($key, $value) = split /:/;
+    next unless defined $value;
+    $readings{$key} = $value;
+    next unless $readings{sensorreading};
+    print "$name $readings{sensorid} $readings{sensorreading}\n";
+    last;
+    #  if $key eq 'reading' and $readings{status} ne 'normal';
+    }
+  exit;
+  }
+
+for(@child){
+  waitpid($_,0);
+  }
+
+sub help {
+        print <<End
+Query the sensors on a group of nodes and return information about any errors.
+Usage:  node_sel_query [option]
+
+Options include:
+	-t, --type     - Type of machine to run on (pxe config file name)
+	-n, --nodes    - String or regex that describes the subset of node 
+                         names to run on.
+	--help         - Show this message
+End
+;
+        exit;
+        }
+
+
+__END__
+
+Index            : 17
+Sensor ID Number : 82
+Status           : Normal
+Probe Name       : VCORE 2
+Reading          : 0.939600 V
+
+

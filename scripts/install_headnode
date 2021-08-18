@@ -1,0 +1,14 @@
+#!/bin/bash -e
+
+# Install the cluster headnode
+
+# git clone https://github.com/icl-utk-edu/cluster
+
+yum -y install epel-release
+yum -y install ansible
+
+cd /cluster/ansible
+ansible-playbook -l headnode site.yaml
+
+
+

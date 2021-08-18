@@ -1,0 +1,58 @@
+#!/usr/bin/perl
+#
+# Easy logging of work and notes specific to cluster nodes
+#
+# DB: time,user,name,note
+#
+use strict;
+use warnings;
+use lib "/newton/scripts";
+use Newton;
+
+my $system = shift @ARGV;
+my $note = join(' ', @ARGV);
+unless(defined $system){
+  die "Usage: logbook <system name> [note]\n";
+  }
+
+my $db = Newton::db();
+
+my $info = $db->selectcol_arrayref(
+  "SELECT systemid FROM systems WHERE name LIKE ?",
+  undef, "$system\%",
+  );
+my $num = @$info;
+warn "Warning: $num nodes found\n" if $num > 1 or $num == 0;
+
+unless(defined $note and $note =~ /\S+/){ # print notes
+  my $info = $db->selectall_arrayref(
+    "SELECT systemid,name FROM systems WHERE name LIKE ?",
+    undef, "$system\%",
+    );
+  for(@$info){
+    my ($id, $name) = @$_;
+    my $notes = $db->selectall_arrayref(
+      'SELECT time,user,note FROM newlogbook WHERE systemid=? ORDER BY time',
+      undef, $id,
+      );
+    print "No logs for $name\n" unless @$notes;
+    for(@$notes){
+      my ($time, $user, $note) = @$_;
+      my $ttime = localtime($time);
+      print "[$ttime] $name $user $note\n";
+      }
+    }
+  }
+else { # add the note to the log
+  my ($id,$name) = $db->selectrow_array(
+    "SELECT systemid,name FROM systems WHERE name=?",
+    undef, $system,
+    );
+  die "No systems named '$system' found.\n" unless defined $id;
+  $db->do(
+    'INSERT INTO newlogbook (time,systemid,user,note) VALUES (?,?,?,?)',
+    undef, time(), $id, $ENV{USER}, $note,
+    );
+  print "Note added to $name\n";
+  }
+

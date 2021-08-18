@@ -1,0 +1,56 @@
+#!/usr/bin/perl
+
+# This script should be used when a new project is added on the Newton website.
+# This will acomplish the following:
+#   - Ensure that a userset and project exists for each entry on the website
+#   - Warn if any usersets or projects exist that are not on the website
+#
+# Future modifications:
+#   - Modify user sets to explicitly include all users who are members (to ensure that secondary group memberships are included)
+
+use strict;
+use warnings;
+use lib '/newton/scripts';
+use Newton;
+use File::Temp 'tempfile';
+
+my %current_usersets = map {chomp;$_=>1000} `qconf -sul`;
+my %current_projects = map {chomp;$_=>1000} `qconf -sprjl`;
+
+my $projects = Newton::WebDB('projects');
+for(@$projects){
+  my $project = $_->{project};
+  addUserset($project) unless $current_usersets{ $project }++;
+  addProject($project) unless $current_projects{ $project }++;
+  }
+
+for(keys %current_usersets){
+  my $key = $_;
+  next if $key eq 'defaultdepartment';
+  warn "Warning: userset $key exists but is not defined.\n" if $current_usersets{$key} == 1000;
+  }
+for(keys %current_projects){
+  my $key = $_;
+  warn "Warning: project $key exists but is not defined.\n" if $current_projects{$key} == 1000;
+  }
+
+
+sub addUserset {
+  my $group = shift;
+  warn "Creating Userset: $group\n";
+  system "qconf -au \@$group $group";
+  die "Error adding userset.\n" unless $? == 0;
+  }
+
+sub addProject {
+  my ($project) = @_;
+  warn "Creating Project: $project\n";
+  my ($FH, $file) = tempfile();
+  flock($FH, 2) or die $!;
+  print {$FH} "name $project\noticket 0\nfshare 0\nacl $project\nxacl NONE\n";
+  close $FH;
+  system "qconf -Aprj $file";
+  die "Error adding project.\n" unless $? == 0;
+  }
+
+

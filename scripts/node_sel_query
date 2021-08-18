@@ -1,0 +1,63 @@
+#!/usr/bin/perl
+
+# SEL format:
+# 4 | 02/25/2011 | 09:55:35 | System Event #0x85 | OEM System boot event | Asserted
+
+use strict;
+use warnings;
+use Getopt::Long;
+use lib "/newton/scripts";
+use Newton;
+
+Getopt::Long::Configure("bundling");
+my %opt;
+my $ok = GetOptions(
+	\%opt,
+	'type|t=s',
+	'nodes|n=s',
+	'help|h',
+	);
+
+if(not $ok or $opt{help}){
+  help();
+  }
+
+my $passwd = $ENV{BMC_PASSWD} || Newton::bmc_passwd();
+my $db = Newton::db();
+my $nodes = $db->selectall_arrayref(
+  'SELECT system,ip FROM addresses WHERE system like ? AND type=? ORDER BY system',
+  undef, "$opt{nodes}\%", 'bmc',
+  );
+for(@$nodes){
+  my $name = shift @$_;
+  my $ip_bmc = Newton::i2ip(shift @$_);
+  next unless defined $ip_bmc;
+  my @sel = Newton::ipmi('sel list', $ip_bmc, $passwd);
+  my %errors;
+  print "---------------------\n";
+  for(@sel){
+    print "$name $_";
+    #chomp;
+    #my @info = split /\s+\|\s+/;
+    #next unless defined $info[4];
+    #my $error = "$name $info[1] $info[2] $info[3] $info[4]\n";
+    #next if $errors{$error}++;
+    #print $error;
+    }
+  }
+
+sub help {
+        print <<End
+Query the SEL on a group of nodes and return information about any errors.
+Usage:  node_sel_query [option]
+
+Options include:
+	-t, --type     - Type of machine to run on (pxe config file name)
+	-n, --nodes    - String or regex that describes the subset of node 
+                         names to run on.
+	--help         - Show this message
+End
+;
+        exit;
+        }
+

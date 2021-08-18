@@ -1,0 +1,65 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use lib "/newton/scripts";
+use Newton;
+
+unless($ENV{USER} eq 'root'){
+  die "Please run this as root.\n";
+  }
+
+my $dir = "/newton/scripts";
+
+my $db = Newton::db();
+
+my %info;
+my $system     = ask('System this server is on');
+my ($system_exists) = $db->selectrow_array('SELECT name FROM systems WHERE name=?', undef, $system);
+unless(defined $system_exists){
+  print "System doesn't exist.  Will create new system\n";
+  undef $system;
+  }
+
+my $name = ask('Server FQDN');
+my ($domain) = $name =~ /^[^\.]+\.(.+)$/;
+unless(defined $domain or $name =~ /\_/){
+  die "Error: $name is not a FQDN.\n";
+  }
+
+my $ip = ask('Server IP');
+if($ip eq ''){
+  $ip = Newton::new_ip($domain);
+  print "Using IP $ip\n";
+  }
+die "Error: IP $ip is not correct.\n" unless $ip =~ /^[\d+\.]+$/;
+
+my $mac = ask('Server MAC');
+die "MAC is not correct" unless $mac =~ /^[\d\w\:]+$/;
+
+Newton::add_address($name, $ip, $mac, 'system', $system);
+$system ||= $name;
+
+my $ip_bmc = ask('Management IP');
+my $mac_bmc = ask('Management MAC');
+
+if($ip_bmc eq '' and $mac_bmc ne ''){
+  $ip_bmc = Newton::new_ip($domain);
+  print "Using BMC IP $ip_bmc\n";
+}
+if($ip_bmc ne ''){
+  (my $name_bmc = $name) =~ s/(\.[^\.]+)$/-bmc$1/;
+  Newton::add_address($name_bmc, $ip_bmc, $mac_bmc, 'bmc', $system);
+}
+
+`$dir/node_install/01-dns`;
+`$dir/node_install/02-dhcpd`;
+`$dir/node_install/09-build_nagios_host_definition_file`;
+
+sub ask {
+  my $msg = shift;
+  print "$msg: ";
+  my $value = <>;
+  chomp $value;
+  return $value;
+  }

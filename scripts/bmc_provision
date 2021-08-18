@@ -1,0 +1,189 @@
+#!/usr/bin/perl
+#
+# To do:
+#   show up to date summary during process
+#   Optionally add IB address
+
+use strict;
+use warnings;
+use lib "/newton/scripts";
+use Newton;
+use Getopt::Long;
+use Term::ReadKey;
+use Data::Dumper;
+
+END {
+  ReadMode 'normal';
+  }
+
+my $dir = "/newton/scripts";
+my $pxedir = '/newton/files/pxelinux';
+my $BMC_USER = 'USERID';
+
+my ($role, $domain, $nodeset, $BMC_INT) = qw(0 local 0 lanplus);
+my $ok = GetOptions(
+  'role|r=s' => \$role,
+  'domain|d=s' => \$domain,
+  'nodeset=s' => \$nodeset,
+  'ipmi=s' => \$BMC_INT,
+  );
+my $basename = shift @ARGV;
+
+help() if(not $basename or not $ok or not $role or not $nodeset);
+
+my $db = Newton::db();
+$db->{AutoCommit} = 1; 
+$db->{RaiseError} = 1;
+checkdomain();
+help("Role $role doesn't exist") unless -e "$pxedir/$role/config";
+
+my $bmc_passwd = Newton::get_passwd('BMC password');
+
+$nodeset = $basename unless defined $nodeset;
+my ($nextnode) = nextnode($basename);
+print "Starting with $nextnode\n";
+
+my (%found, %SYS, %BMC);
+# find all new BMC interfaces on the network
+open(LOG, '/var/log/messages') or die $!;
+while(<LOG>){
+  chomp;
+  my ($ip, $mac) = /DHCPACK on ([\d\.]+) to ([\w\:]+)/;
+  next if not(defined($ip)) or $found{$ip}++;
+  next if used($ip, $mac);
+  next unless has_ipmi($ip);
+  warn "Found BMC $ip\n";
+  $BMC{$ip} = $mac;
+  }
+close LOG;
+my $bmc_count = keys %BMC;
+warn "Found $bmc_count BMC interfaces.\n";
+
+print "Power on sequence\n";
+# turn on main system for all detected BMC interfaces
+for(keys %BMC){
+  my $ip = $_;
+  my ($status) = Newton::ipmi('chassis power status', $ip, $bmc_passwd, $BMC_USER, $BMC_INT);
+  unless(defined $status and $status =~ /power/is){
+    print "$ip is not responding\n";
+    delete $BMC{$ip};
+    next;
+    }
+  my $cmd = ($status =~ /\s+on\s*$/i) ? 'cycle' : 'on';
+  print "$ip power $cmd\n";
+  print Newton::ipmi("chassis power $cmd", $ip, $bmc_passwd, $BMC_USER, $BMC_INT);
+  }
+
+# listen for newly detected systems
+chdir "$pxedir/pxelinux.cfg";
+`ln -sf ../$role/config default`;
+warn "Aquiring systems... (Press 'f' when finished)\n";
+ReadMode 'cbreak';
+open(LOG, 'tail -n 0 -f /var/log/messages |') or die $!;
+%found = ();
+while(<LOG>){
+  my $key = ReadKey(-1);
+  last if defined $key and $key eq 'f';
+  chomp;
+  my ($ip, $mac) = /DHCPACK on ([\d\.]+) to ([\w\:]+)/;
+  next unless defined $ip;
+  next if $found{$ip}++ or $BMC{$ip} or used($ip, $mac);
+  $SYS{$ip} = $mac;
+  warn "Found system $ip $mac\n";
+  }
+close LOG;
+ReadMode 'normal';
+my $sys_count = keys %SYS;
+warn "Found $sys_count systems.\n";
+
+print "Grouping BMC and system identifiers...\n";
+my @upNodes = grep {Newton::ping($_)} keys %SYS;
+print scalar(@upNodes)," systems up.\n";
+my @upBMCs =  grep {Newton::ping($_)} keys %BMC;
+print scalar(@upBMCs)," BMC up.\n";
+for(@upBMCs){
+  my $bmc = $_;
+  print "Turning off BMC $bmc\n";
+  Newton::ipmi('chassis power off', $bmc, $bmc_passwd, $BMC_USER, $BMC_INT);
+  my (@down, $c);
+  while($c++ < 20 && @down == 0){
+    sleep 1;
+    @down = grep {! Newton::ping($_)} @upNodes;
+    }
+  next if @down == 0;
+  if( @down > 1 ){
+    warn "Error: mulitple downed nodes!\n";
+    next;
+    }
+  addnode($down[0], $SYS{$down[0]}, $bmc, $BMC{$bmc});
+  @upNodes =  grep {Newton::ping($_)} @upNodes;
+  }
+
+$db->disconnect();
+
+###########################################################3
+
+sub has_ipmi {
+  my $ip = shift;
+  return unless Newton::ping($ip);
+  my $info = `nmap -sU -p623 $ip`;
+  return 1 if $info =~ /623\/udp open/si;
+  return;
+  }
+
+sub used {
+  my ($ip, $mac) = map {Newton::addr2i($_)} @_;
+  return 1 if exist('ip',$ip) or exist('mac',$mac);
+  return 0;
+  }
+
+sub nextnode {
+  my $nodes = $db->selectcol_arrayref(
+    'SELECT name FROM addresses where nodeset=?', undef, $nodeset,
+    );
+  my ($id) = reverse sort {$a<=>$b} map {/(\d+)/;$1} @$nodes;
+  $id=-1 unless defined $id;
+  $id++;
+  my $base = $basename;
+  return("$base$id.$domain") unless $base =~ /(0{2,})/;
+  my $len = length($1);
+  $base =~ s/\d+/sprintf("\%0${len}i", $id)/e;
+  return("$base.$domain");
+  }
+
+sub addnode {
+  my ($ip, $mac, $ip_bmc, $mac_bmc) = @_;
+  my $name = nextnode();
+  print "Creating $name, $basename, $domain, $ip, $mac, $ip_bmc, $mac_bmc, $role, $nodeset\n";
+  Newton::add_address($name, $ip, $mac, 'system');
+  (my $name_bmc = $name) =~ s/(\.[^\.]+)$/-bmc$1/;
+  Newton::add_address($name_bmc, $ip_bmc, $mac_bmc, 'bmc', $name);
+  $db->do('UPDATE addresses set role=?,nodeset=? WHERE name=?', undef, $role, $nodeset, $name);
+  }
+
+sub exist {
+  my ($key, $value) = @_;
+  my ($existing) = $db->selectrow_array(
+    "SELECT count(*) FROM addresses WHERE $key=?",
+    undef, $value,
+    );
+  return $existing;
+  }
+
+sub checkdomain {
+  my ($test) = $db->selectrow_array(
+    'SELECT domain FROM domains WHERE domain=?',
+    undef, $domain,
+    );
+  help("Domain $domain doesn't exist") 
+    unless defined $test and $test eq $domain;
+  }
+
+sub help {
+  my $msg = shift;
+  warn "Error: $msg\n" if defined $msg;
+  die  
+q/Usage: bmc_provision --role=<role> --nodeset=<name> [--domain=<domain>] [--ipmi=lanplus] <basename>
+/;
+  }
+

@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+# Deletes all jobs running on a given node
+
+use strict;
+use warnings;
+use Newton;
+use Mail::Send;
+
+my (%userjobs, %done);
+for(@ARGV){
+  my $node = $_;
+  my @jobs = `qstat -u '*' -g t | grep $node`;
+  for(@jobs){
+    chomp;
+    s/^\s+//;
+    my ($jobid, undef, $name, $user, $state, undef, undef, $queue, undef, $task) = split /\s+/;
+    $jobid = "$jobid.$task" if defined $task and $task =~ /^\d+$/;
+    next unless defined $queue;
+    my ($host) = $queue =~ /\@(.+)$/;
+    next unless $host eq $node;
+    next if $done{$jobid}++;
+    print "Removing job $jobid $name $user\n";
+    $userjobs{$user} .= "$jobid $name\n";
+    print `qdel -f $jobid`;
+    }
+  }
+
+my %userEmail = Newton::selectall_hash('SELECT username,email FROM users');
+my $msgbody = join('', <DATA>);
+for(keys %userjobs){
+  my $username = $_;
+  my $address = $userEmail{$username} || "$username\@utk.edu";
+  print "Sending message to $address.\n";
+  my $msg = Mail::Send->new(Subject=>'Your Newton jobs', To=>$address, Cc=>$Newton::adminEmail, Cc=>'gragghia@utk.edu');
+  $msg->add('Reply-To', $Newton::adminEmail);
+  my $fh = $msg->open('sendmail');
+  print $fh $msgbody.$userjobs{$username};
+  $fh->close() or warn "error sendmail message to $address";
+  }
+
+__DATA__
+The following compute jobs running on the Newton clusters 
+have been stopped due to failure of a compute node.  Please
+review any relevant log files for the job and resubmit as
+appropriate.
+
+Jobs:

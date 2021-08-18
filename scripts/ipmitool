@@ -1,0 +1,17 @@
+#!/usr/bin/perl
+
+#/usr/bin/ipmitool -I lanplus -H $1 -U root -P M80wTka7 $2 $3 $4 $5 $6
+
+use strict;
+use warnings;
+use Newton;
+
+my $host = shift @ARGV;
+die unless defined $host;
+
+my $passwd = $ENV{BMC_PASSWD} || Newton::get_passwd();
+my $cmd = join(' ', @ARGV);
+die unless defined $cmd;
+print Newton::ipmi($cmd, $host, $passwd);
+
+

@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+# 
+# Show job that don't appear to be using the CPU, may be down
+#
+# job-ID  prior   ntckts  name       user         project          department state cpu        mem     io      tckts ovrts otckt ftckt stckt share queue                          slots ja-task-ID
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#  82345 0.79884 0.79884 job.sge    aabedija     mrail            defaultdep r     445:06:48:54 401221282.15939 0.00000   816     0     0    74   742 0.02  long_mrail_test@epsilon0.local   240
+#
+use strict;
+use warnings;
+use Data::Dumper;
+
+my %times1 = jobtimes();
+sleep 240;
+my %times2 = jobtimes();
+for(keys %times2){
+  my $job = $_;
+  next unless $times1{$job};
+  next if $times1{$job} < $times2{$job};
+  print "Odd CPU usage: job $job\n";
+  }
+
+sub jobtimes {
+  my @jobs = `qstat -s r -u '*' -ext`;
+  my %jobs;
+  for(@jobs){
+    s/^\s+//;
+    next unless /^\d+/;
+    my @items = split /\s+/;
+    my $cpu = 0;
+    map {$cpu = $_+100*$cpu} grep {/\d+/} split(':', $items[8]);
+    $jobs{$items[0]} = $cpu;
+    }
+  return %jobs;
+  }

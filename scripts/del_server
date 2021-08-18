@@ -1,0 +1,51 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use lib "/newton/scripts";
+use Newton;
+
+my $system = pop @ARGV;
+my $go = pop @ARGV;
+
+unless($ENV{USER} eq 'root'){
+  die "Please run this as root.\n";
+  }
+
+my $dir = "/newton/scripts";
+
+my $db = Newton::db();
+
+my ($system_id) = $db->selectrow_array(
+  'SELECT systemid FROM systems WHERE name=?', undef, $system,
+  );
+die "No such system name found.\n" unless defined $system_id;
+
+my $ref_addr = $db->selectcol_arrayref(
+  'SELECT name FROM addresses WHERE system=?', undef, $system,
+  );
+print "Found address entry $_\n" for @$ref_addr;
+
+my $ref_sys = $db->selectcol_arrayref(
+  'SELECT name FROM systems WHERE parent=?', undef, $system,
+  );
+print "Found child system entry $_\n" for @$ref_sys;
+die "Cannot remove system $system while child systems exist\n" for @$ref_sys;
+
+unless(defined $go and $go eq '-y'){
+  print "Press any key to delete these entries\n";
+  <>;
+}
+
+$db->do('UPDATE addresses SET system=NULL WHERE system=?', undef, $system);
+$db->do('DELETE FROM newlogbook WHERE systemid=?', undef, $system_id);
+$db->do('DELETE FROM systems WHERE name=?', undef, $system);
+$db->do('DELETE FROM addresses WHERE name=?', undef, $_) for @$ref_addr;
+
+sub ask {
+  my $msg = shift;
+  print "$msg: ";
+  my $value = <>;
+  chomp $value;
+  return $value;
+  }

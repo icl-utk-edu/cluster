@@ -1,0 +1,86 @@
+#!/usr/bin/perl
+# Rebuild DNS zones from the nodes DB
+
+use strict;
+use warnings;
+use lib "/newton/scripts";
+use Newton;
+use HTML::Template;
+use Data::Dumper;
+
+my $dir = "/newton/files/named";
+#my $dir = "/tmp/named";
+
+my $db = Newton::db();
+my $domains = $db->selectall_arrayref(
+  'SELECT domain,ip1,ip2 FROM domains WHERE manage_dns=1'
+  );
+
+my (%total, @zones);
+for(@$domains){
+  my ($domain, $ip1, $ip2) = @$_;
+  push @zones, {zone=>$domain, file=>"$domain.domain"};
+  my %rev = create_domain($domain, $ip1, $ip2);
+  %total = (%total, %rev);
+  }
+my @nets = keys %total;
+for(@nets){
+  my $net = $_;
+  my $zone = join('.', reverse split(/\./, $net));
+  push @zones, {zone=>"$zone.in-addr.arpa", file=>"reverse.$net.domain"};
+  tmpl(
+    "$dir/reverse.tmpl", "$dir/reverse.$net.domain",
+    nodes => $total{$net},
+    serial => time,
+    );
+  }
+
+tmpl(
+  "$dir/named.tmpl", "$dir/named.conf",
+  zones => \@zones,
+  );
+
+`cp $dir/named.conf /etc/`;
+`/sbin/service named restart`;
+
+
+
+sub create_domain {
+  my ($domain, $ip1, $ip2) = @_;
+  my $nodes = $db->selectall_arrayref(
+    'SELECT name,ip FROM addresses WHERE ip>=? AND ip<=?',
+    undef, map {Newton::ip2i($_)} ($ip1, $ip2),
+    );
+
+  my %rev;
+  for(@$nodes){
+    my ($fqdn, $ip) = @$_;
+    $ip = Newton::ipaddr($ip);
+    my ($machine) = $fqdn =~ /^([^\.]+)\./;
+    my ($net,$num) = $ip =~ /^([\d\.]+)\.(\d+)$/;
+    push @{ $rev{$net} }, {name=>$fqdn, num=>$num};
+    $_ = {name=>$machine, ip=>$ip};
+    }
+  tmpl(
+    "$dir/domain.tmpl", "$dir/$domain.domain",
+    nodes => $nodes,
+    serial => time,
+    );
+  return %rev;
+  }
+
+sub tmpl {
+  my $file = shift;
+  my $out = shift;
+  my $tmpl = HTML::Template->new(
+    filename => $file,
+    die_on_bad_params => 0,
+    );
+  $tmpl->param(@_, serial=>time);
+  open(ZONE, "+> $out") or die $!;
+  flock(ZONE, 2);
+  print ZONE $tmpl->output;
+  close ZONE;
+  }
+
+

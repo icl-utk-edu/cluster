@@ -1,0 +1,20 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Newton;
+use Data::Dumper;
+
+my $user = $ARGV[0] || '*';
+
+my @jobs = `qstat -u '$user' -s r`;
+for(@jobs){
+  chomp;
+  s/^\s+//;
+  my ($jobid, undef, $name, $user, $state, undef, undef, $queue, undef, $task) = split /\s+/;
+  next unless $jobid =~ /^\d+$/;
+  $jobid = "$jobid.$task" if defined $task and $task =~ /^\d+$/;
+#  print "$jobid $state\n";
+  print `qdel -f $jobid`;
+  }
+

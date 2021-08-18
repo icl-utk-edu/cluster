@@ -1,0 +1,109 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use lib "/newton/scripts";
+use Newton;
+use Getopt::Long;
+use Data::Dumper;
+
+die "Warning! Not converted to new DB schema";
+
+my $dir = "/newton/scripts";
+my $pxedir = '/newton/files/pxelinux/pxelinux.cfg/';
+
+my %opt = (role=>'default', domain=>'local', norun=>0);
+my $ok = GetOptions(
+  \%opt,
+  'role|r=s',
+  'domain|d=s',
+  'nodeset|s=s',
+  'mac|m=s',
+  'name|n=s',
+  'base|b=s',
+  'ip|i=s',
+  'norun',
+  );
+
+help() if(not $opt{name} or not $ok);
+
+my $db = Newton::db();
+check_role( $opt{role} );
+check_domain( $opt{domain} );
+
+$opt{ip} ||= Newton::new_ip($opt{domain});
+check('ip', $opt{ip});
+check('ip_bmc', $opt{ip});
+
+if($opt{mac}){
+  check('mac', $opt{mac});
+  check('mac_bmc', $opt{mac});
+  }
+
+help("Error: invalid name '$opt{name}'") if $opt{name} !~ /\./;
+check('name', $opt{name});
+
+unless($opt{base}){
+  my ($base) = $opt{name} =~ /^(.+)\./;
+  ($opt{id}) = $base =~ /0*(\d+)$/;
+  $base =~ s/\d/0/gs;
+  $opt{base} = $base;
+  }
+unless($opt{nodeset}){
+  ($opt{nodeset} = $opt{base}) =~ s/\d+$//gs;
+  }
+
+my @fields = qw/role domain ip mac name base id nodeset/;
+print "Creating " . join(', ', map {"$_=".($opt{$_}||'')} @fields) . "\n";
+my $fields = join(',', @fields);
+my $place = join(',', map {'?'} @fields);
+$db->do("INSERT INTO nodes ($fields) VALUES ($place)",
+  undef, map {$opt{$_}} @fields,
+  );
+#run_scripts($name, $newip, $mac, $role) unless $norun;
+
+#####################################################################################
+
+sub run_scripts {
+  my @info = @_;
+  my $info = join(' ', @info);
+  my @scripts = glob("$dir/node_install/*");
+  for(sort @scripts){
+    print `$_ $info`;
+    }
+  }
+
+sub check {
+  my ($key, $value) = @_;
+  my ($taken) = $db->selectrow_array(
+    "SELECT count(*) FROM nodes WHERE $key=?",
+    undef, $value,
+    );
+  help("Duplicate: $key=$value") if $taken;
+  }
+
+sub check_role {
+  my $role = shift;
+  help("Role $opt{role} doesn't exist at $pxedir")
+    unless -e "$pxedir$opt{role}";
+  }
+
+sub check_domain {
+  my $dom = shift;
+  my ($test) = $db->selectrow_array(
+    'SELECT domain FROM domains WHERE domain=?',
+    undef, $dom,
+    );
+  help("Domain $dom doesn't exist") 
+    unless defined $test and $test eq $dom;
+  }
+
+
+sub help {
+  my $msg = shift;
+  warn "Error: $msg\n" if defined $msg;
+  die  
+q/Usage: add_node [--role <role>] [--domain <domain>] [--ip <ip>] [--mac <mac>] [--nodeset <nodeset>] --name <name>
+/;
+  }
+

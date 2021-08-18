@@ -1,0 +1,23 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+die "Error: Must execute as root.\n" unless $ENV{USER} eq 'root';
+
+my ($host, $cmd) = @ARGV;
+die unless defined $host;
+$cmd ||= 'r';
+my $name = $cmd eq 'r' ? 'reboot' : 'shutdown';
+
+my @info = `qstat -f -q 'short*\@$host'`;
+unless( defined $info[2] ){
+  die "Died on $host\n";
+  }
+my ($queue, $ncpu) = $info[2] =~ /^(\S+)\s+\S+\s+\d+\/\d+\/(\d+)/;
+
+die unless defined $queue and defined $ncpu;
+my $cd = "qsub -N $name -q $queue -pe threads $ncpu -wd /tmp -b y /sbin/shutdown -$cmd now";
+print $cd,"\n";
+print `$cd`;
+

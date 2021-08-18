@@ -1,0 +1,42 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use lib '/newton/scripts';
+use Newton;
+use Data::Dumper;
+
+die "Error: Must run as root.\n" unless $ENV{USER} eq 'root';
+
+my $server = shift @ARGV;
+unless(defined $server){
+  print join('', <DATA>);
+  exit;
+}
+my $connections = Newton::ssh('netstat -anp',$server);
+for( split(/\n/, $connections) ){
+  my ($proto, undef, undef, $host1, $host2, $status) = split /\s+/;
+  next unless defined $status and $proto eq 'tcp' and $status eq 'ESTABLISHED';
+  my ($host, $service) = split(':', $host1);
+  next unless $service eq '2049';
+  my ($client) = split(':', $host2);
+  mounts($client);
+}
+
+sub mounts {
+  my $host = shift;
+warn "$host\n";
+  my @mounts = split(/\n/, Newton::ssh('cat /proc/mounts', $host) );
+  for(@mounts){
+    my ($source, $mntpnt) = /^(\S+):(\S+)\s+/;
+    next unless defined $mntpnt;
+    next unless $server =~ /^\Q$source\E/;
+    print "$mntpnt\n";
+  }
+}
+
+__DATA__
+Given an NFS server hostname, show all clients and NFS exports in use.
+
+Usage: show_mounts <server>
+

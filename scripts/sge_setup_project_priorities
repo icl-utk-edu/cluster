@@ -1,0 +1,83 @@
+#!/usr/bin/perl
+#
+# Generate the Newton SGE Resource Quota Sets (RQS)
+# Set the share tree values for each project
+#
+
+use strict;
+use warnings;
+use lib '/newton/scripts';
+use Newton;
+use File::Temp 'tempfile';
+
+my $db = Newton::db();
+my $projects = Newton::selectall_arrayref('SELECT project,priority from projects WHERE priority');
+
+create('long*', 1, 64, 0);
+create('long*,medium*', 1.25, 128, 64);
+create('long*,medium*,short*', 1.5, 512, 256);
+setup_sharetree();
+
+#------------------------------------------------------------------------------------
+sub create {
+  my ($queues, $factor, $floor, $other) = @_;
+  my $name = "Managed_$queues";
+  $name =~ s/\W+/_/gs;
+  my $rules;
+  for(@$projects){
+    my ($project, $slots) = @$_;
+    my $cpu = int($slots * $factor);
+    $cpu = $floor if $cpu < $floor;
+    my $mem = $cpu * 2;
+    $rules .= "limit projects $project queues $queues to mem=${mem}G,dedicated=$cpu,cores_per_node=$cpu\n";
+    }
+  my $other_mem = $other * 2;
+  $rules .= "limit users {*} queues $queues to mem=${other_mem}G,dedicated=$other,cores_per_node=$other\n";
+  Write($name, $rules);
+  }
+
+sub Write {
+  my ($name, $rqs) = @_;
+  my ($fh, $file) = tempfile();
+  flock($fh, 2) or die $!;
+  print {$fh} qq/{
+   name         $name
+   description  Do not modify this directly, use sge_setup_project_priorities
+   enabled      TRUE
+   limit users root to slots=10000
+   limit projects admin to slots=10000
+$rqs
+}/;
+  close $fh;
+
+  my $cmd = `qconf -srqs '$name'`?'M':'A';
+  print `qconf -${cmd}rqs '$file' '$name'`;
+  }
+
+sub total_cpu {
+  my $total = 0;
+  for(`qhost`){
+    next if /^cms/;
+    my ($slots, $up) = (split /\s+/)[2,3];
+    $up ||= '';
+    next if $up eq '-';
+    next unless defined $slots and $slots =~ /^\d+$/;
+    $total += $slots;
+    }
+  return $total;
+  }
+
+sub setup_sharetree {
+  for(@$projects){
+    my ($project, $share) = @$_;
+    my $test = `qconf -sstnode $project 2>&1`;
+    my ($oldshare) = $test =~ /\/$project=(\d+)/;
+    $oldshare ||= 0;
+    my $cmd = ($test =~ /Unable/)?'a':'m';
+    print `qconf -${cmd}stnode /$project=$share`
+      unless($share == $oldshare);
+    print `qconf -astnode /$project/default=1`
+      unless($test =~ /default=1/s);
+    }
+  }
+

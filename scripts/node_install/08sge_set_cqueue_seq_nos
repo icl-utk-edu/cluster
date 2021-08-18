@@ -1,0 +1,62 @@
+#!/usr/bin/perl
+#
+# This script orders the SGE cluster queues and queue instances optimally:
+#   - Prefers longer time limit queues for jobs that don't specifiy a time limit (long, medium, short).
+#   - Prefers smaller cluster queues so that small jobs go to small queues before using larger cluster queues.  
+#   - Orders the queue instances (compute nodes) within each cluster queue so that the system will fill up 
+#     each compute nodes before moving to the next node.  
+#   - Puts long queue instances in the reverse order so that long jobs tend to fill up nodes using only long jobs.
+#   - Cluster queues that don't run MPI jobs are put ahead of all others within the time limt groups.
+#
+use strict;
+use warnings;
+use Newton;
+use Data::Dumper;
+
+my %order = (sigma=>10,phi=>30,rho=>20,monster=>40);
+
+my @queues = Newton::cluster_queues();
+
+my @long   = grep {$_->{name} =~ /^long_/}   @queues;
+my @medium = grep {$_->{name} =~ /^medium_/} @queues;
+my @short  = grep {$_->{name} =~ /^short_/}  @queues;
+
+order_cqueues(10000, @long);
+order_cqueues(20000, @medium);
+order_cqueues(30000, @short);
+
+sub order_cqueues {
+  my ($baseNum, @queues) = @_;
+  for(keys %order){
+    my $match = $_;
+    my $value = $order{$_};
+    map {$_->{total} = $value} grep {$_->{name} =~ /$match$/} @queues;
+    }
+  #map {$_->{total} = 0} grep {$_->{name} =~ /$first_queues/} @queues;
+  #map {$_->{total} = 10000} grep {$_->{name} =~ /$last_queues/} @queues;
+  @queues = sort {$a->{total} <=> $b->{total}} @queues;
+  my $c = 1;
+  for(@queues){
+    my $seq_no = $baseNum + 1000*$c++;
+    warn "seq_no=$seq_no $_->{name}\n";
+    set_seq_no($_->{name}, $seq_no);
+    sort_queue_instances($_->{name}, $seq_no);
+    }
+  }
+
+sub set_seq_no {
+  my ($queue, $seq_no) = @_;
+  `qconf -mattr queue seq_no $seq_no $queue`;
+  }
+
+sub sort_queue_instances {
+  my ($cqueue, $c_seq_no) = @_;
+  my @q_inst = sort grep {defined} map {/<name>(.+)<\/name>/ ?$1:undef} `qstat -f -q $cqueue -xml`;
+  @q_inst = reverse(@q_inst) if $cqueue =~ /^long_/;
+  my $c = 0;
+  for(@q_inst){
+    my $seq_no = $c_seq_no + $c++;
+    set_seq_no($_, $seq_no);
+    }
+  }
+

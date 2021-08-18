@@ -1,0 +1,82 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use lib "/newton/scripts";
+use Newton;
+use Getopt::Long;
+use File::Temp 'tempfile';
+
+my ($enable,$help) = (0,0);
+my $ok = GetOptions(
+  'enable|e' => \$enable,
+  'help|h' => \$help,
+  );
+die "Error: bad option argument\n" unless $ok;
+die "Usage: disableNode <system name> [Optional note]\n" if $help;
+
+my $db = Newton::db();
+
+my $system = shift @ARGV;
+my $message = join(' ', @ARGV);
+unless(defined $system){
+  # print out all disabled nodes
+  my @jobs = `qstat -u '*' -g t -s r`;
+  my $systems = $db->selectall_arrayref(
+    'SELECT systemid,name FROM systems WHERE disabled=1 ORDER BY name',
+    );
+  for(@$systems){
+    my ($id, $name) = @$_;
+    my ($note) = $db->selectrow_array(
+      'SELECT note FROM newlogbook WHERE systemid=? ORDER BY time DESC LIMIT 1',
+      undef, $id,
+      );
+    $note ||= '';
+    my $count = grep /\@$name/, @jobs;
+    print "Disabled: $name  ($note) ";
+    print "$count jobs" if $count > 0;
+    print "\n";
+    }
+  exit;
+  }
+
+my ($systemid) = $db->selectrow_array(
+  "SELECT systemid FROM systems WHERE name=?",
+  undef, $system,
+  );
+die "No system named '$system' found.\n" unless defined $systemid;
+
+my $status = $enable ? 0 : 1;
+$db->do(
+  'UPDATE systems SET disabled=? WHERE systemid=?',
+  undef, $status, $systemid,
+  );
+#my $cmd = $enable ? 'e' : 'd';
+#print `qmod -$cmd '*\@$system'`;
+
+if(defined $message and $message =~ /\S+/){
+  print `logbook $system '$message'`;
+  }
+
+update_disabled_rqs();
+
+sub update_disabled_rqs {
+  my $nodes = $db->selectcol_arrayref('SELECT name FROM systems WHERE disabled=1');
+  my $rqs = 'DisabledNodes';
+  my ($fh, $file) = tempfile();
+  flock($fh, 2) or die $!;
+  print {$fh} qq/{
+   name         $rqs
+   description  Do not modify this directly, managed by "disableNode"
+   enabled      TRUE
+/;
+  for(@$nodes){
+    print {$fh} "limit hosts $_ to slots=0\n";
+    }
+  print {$fh} '}';
+  close $fh;
+
+  my $cmd = `qconf -srqs '$rqs'`?'M':'A';
+  print `qconf -${cmd}rqs '$file' '$rqs'`;
+  }
+

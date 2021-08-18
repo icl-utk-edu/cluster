@@ -1,0 +1,53 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use lib "/newton/scripts";
+use Newton;
+use Getopt::Long;
+
+my $pxescript = "/newton/scripts/node_install/03-pxe";
+my $pxefiles = "/newton/files/pxelinux";
+
+my ($name, $nodeset);
+my $ok = GetOptions(
+  'name|node=s' => \$name,
+  'nodeset=s' => \$nodeset,
+  );
+
+unless($ok and (defined $name or defined $nodeset)){
+  die "Usage: $0 [ --name | --nodeset ] <query> [ <role> ]\n"
+  }
+
+my ($role) = @ARGV;
+
+my $db = Newton::db();
+$db->{AutoCommit} = 1;
+$db->{RaiseError} = 1;
+
+my $where = defined $name ? "name='$name'" : "nodeset='$nodeset'";
+
+if(not defined $role){
+  my $roles = $db->selectall_arrayref(
+    "SELECT name,role FROM addresses WHERE $where",
+    );
+  for(@$roles){
+    my ($name, $role) = @$_;
+    print "Role for $name is $role\n";
+    }
+  exit;
+  }
+
+die "Role $role is not available.\n"
+  unless -e "$pxefiles/$role/config";
+
+my $nodes = $db->selectcol_arrayref(
+  "SELECT name FROM addresses WHERE $where",
+  );
+die "Node specification does not exist.\n" unless @$nodes;
+
+$db->do('UPDATE addresses SET role=? WHERE name=?', undef, $role, $_) 
+  for @$nodes;
+
+print `$pxescript`;
+

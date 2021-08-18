@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use lib '/newton/scripts';
+use Newton;
+
+my $db = Newton::db();
+my $data = $db->selectcol_arrayref('SELECT ip FROM addresses');
+my %ip;
+for(@$data){
+  $ip{Newton::ipaddr($_)}++ if defined $_;
+  }
+
+my @files = 
+    map {$_->[1]} 
+    sort {$b->[0]<=>$a->[0]} 
+    map {[(stat($_))[9],$_]} 
+    glob('/var/log/messages*');
+
+
+for(splice(@files,0,2)){
+  find($_);
+  }
+
+
+sub find {
+  my $file = shift;
+  open(LOG, "zgrep DHCPACK $file |") or die $!;
+  while(<LOG>){
+    next unless /(\d+\.\d+\.\d+\.\d+)/;
+    next if $ip{$1}++;
+    my $ip = $1;
+    next unless Newton::ping($ip);
+    my $nmap = `nmap -sU -p161 $ip`;
+    if( $nmap =~ /161\/udp open\s+/si ){
+      print "$ip BMC\n";
+      next;
+      }
+    $nmap = `nmap -P0 -p22 $ip`;
+    if( $nmap =~ /open\s+ssh/s ) {
+      print "$ip SYS\n";
+      }
+    }
+  close LOG;
+  }
+

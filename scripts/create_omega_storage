@@ -1,0 +1,42 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use lib '/newton/scripts/';
+use Newton;
+
+my $loginserver = 'login.newton.utk.edu';
+my $glusterserver = 'omega2.local';
+
+unless($ENV{USER} eq 'root'){
+  die "Error: Must run this as root.\n";
+  }
+
+my ($dir, $cap, $user) = @ARGV;
+help() unless defined $user;
+
+help("Invalid directory name\n") unless $dir =~ /^\w+$/;
+
+my $dirtest = Newton::ssh("test -d /omega/$dir && echo Exists", $loginserver);
+help("Directory already exists.\n") if $dirtest =~ 'Exists';
+
+help("Invalid capacity\n") unless $cap =~ /^\d+\wB$/;
+
+my $usertest = Newton::ssh("id $user", $loginserver);
+help("Invalid user\n")  unless $usertest =~ /\($user\)/;
+my ($group) = $usertest =~ /gid=\d+\((\w+)\)/;
+help("No group found for user $user\n") unless defined $group;
+
+print Newton::ssh("mkdir /omega/$dir", $loginserver);
+print Newton::ssh("chown $user:$group /omega/$dir", $loginserver);
+print Newton::ssh("chmod 750 /omega/$dir", $loginserver);
+print Newton::ssh("gluster volume quota v0 limit-usage /$dir $cap", $glusterserver);
+
+##################################################################################
+
+sub help {
+  my $msg = shift;
+  warn $msg if defined $msg;
+  die "Usage: $0 <directory> <capacity> <user>\n"
+  }
+

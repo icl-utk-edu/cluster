@@ -1,0 +1,40 @@
+#!/usr/bin/perl
+
+# Report CPU usage by project and dept for past X days
+
+use strict;
+use warnings;
+use Newton;
+use Date::Parse 'str2time';
+
+my $time = str2time(join(' ', @ARGV));
+die unless defined $time and $time > 0;
+
+my $db = DBI->connect(
+  "dbi:mysql:database=sge_accounting;host=mysql.local", "gridmaster", "gridmaster",
+  {RaiseError => 1, AutoCommit => 1}
+);
+my $usage = $db->selectall_arrayref('SELECT project,SUM(job_size*(end_time-start_time)/3600) FROM acct_sge WHERE start_time>? AND end_time>0 AND start_time>0 AND job_size>0 GROUP BY project', undef, $time);
+my $projects = Newton::selectall_arrayref(
+  'SELECT project,name,dept,college FROM projects LEFT JOIN depts WHERE depts.id=projects.deptid'
+);
+
+report($_) for (1,2,3);
+
+sub report {
+  my $index = shift;
+  print "$index --------------------------------\n";
+  my %total;
+  for(@$usage){
+    my ($project, $hours) = @$_;
+    my ($name) = map {$_->[$index]} grep {$_->[0] eq $project} @$projects;
+    $name = $project unless defined $name;
+    $total{$name} += $hours;
+  }
+  for(keys %total){
+    print "\"$_\" $total{$_}\n";
+  }
+  print "\n\n";
+}
+
+

@@ -1,0 +1,51 @@
+#!/usr/bin/perl
+#
+# This script builds the nagios host definition file
+#    including "host" and "hostgroup" definitions.
+#
+use strict;
+use warnings;
+use lib "/newton/scripts";
+use Newton;
+
+my $basedir = "/newton/files/nagios/objects";
+
+my $db = Newton::db();
+my $hosts = $db->selectall_arrayref(
+  'SELECT a.name,ip,nodeset,parent FROM addresses a JOIN systems s ON a.system=s.name'
+  );
+
+my (%check, %sets, @out);
+for(@$hosts){
+  my ($name, $ip, $set, $parent) = @$_;
+  my $notifications_enabled = 1;
+  $sets{$set} = 1 if defined $set and $set ne '';
+  if(defined $set){
+    $notifications_enabled = 0 if $set eq 'devel';
+    $set = "$set,allhosts";
+  } elsif($name =~ /\-bmc\./){
+    $set = 'bmc';
+    $sets{bmc} = 1;
+    $notifications_enabled = 0;
+  } else {
+    $set = 'other';
+    $sets{other} = 1;
+  }
+  if( $check{$name}++ ){
+    warn "Dup: $name\n";
+    $name = "$name-dup$check{$name}";
+    }
+  my %host = (name=>$name, ip=>Newton::ipaddr($ip), parent=>$parent, notifications_enabled=>$notifications_enabled);
+  $host{hostgroups} = $set;
+  push @out, \%host;
+  }
+
+Newton::tmpl(
+  "$basedir/hostgroups.tmpl",
+  "$basedir/hostgroups.cfg",
+  hosts => \@out,
+  groups => [map {{name=>$_}} keys %sets],
+  );
+
+
+

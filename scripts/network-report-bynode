@@ -1,0 +1,34 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use IO::Socket;
+
+for(sort {$a->[1]+$a->[2] <=> $b->[1]+$b->[2]} map {info($_)} @ARGV){
+  print join(' ', map {$_||'NA'} @$_), "\n";
+  }
+
+
+sub info {
+  my $source = shift;
+  my $sock = new IO::Socket::INET (
+	PeerAddr => $source,
+	PeerPort => '8649',
+	Proto => 'tcp',
+	);
+  die "Could not create socket: $!\n" unless $sock;
+  my (@info, @out);
+  while(<$sock>){
+    $info[0] = $1 if /HOST NAME="([^"]+)"/;
+    $info[1] = $1 if /METRIC NAME="bytes_out" VAL="([\d\.]+)"/;
+    $info[2] = $1 if /METRIC NAME="bytes_in" VAL="([\d\.]+)"/;
+    if(@info == 3){
+      push @out, [@info];
+      undef @info;
+      }
+    }
+  close $sock;
+  return @out;
+  }
+
+

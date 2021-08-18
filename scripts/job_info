@@ -1,0 +1,17 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use DBI;
+
+my $db = DBI->connect(
+  "dbi:mysql:database=sge_accounting;host=mysql.local", "gridmaster", "gridmaster",
+  {RaiseError => 1, AutoCommit => 1}
+  );
+for(@ARGV){
+  my $jobid = $_;
+  my @info = $db->selectrow_array('SELECT jobid,owner FROM acct_sge WHERE jobid=?', undef, $jobid);
+  print join(', ', @info),"\n";
+}
+$db->disconnect();
+
