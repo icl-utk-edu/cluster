@@ -2,10 +2,15 @@
 
 # Install the cluster headnode
 
-# git clone https://github.com/icl-utk-edu/cluster
+# cd / && git clone git@github.com/icl-utk-edu/cluster
+
+yum -y install ipa-client
+ipa-client-install --server vm0.icl.utk.edu --domain icl.utk.edu  --mkhomedir -p gragghia
 
 yum -y install epel-release
 yum -y install ansible
+
+
 
 cd /cluster/ansible
 ansible-playbook -l headnode site.yaml
