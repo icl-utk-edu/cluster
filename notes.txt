@@ -1,0 +1,10 @@
+Build initrd within container
+   - Need to specify kernel version
+   - yum install dracut dracut-network dracut-config-generic kernel
+   - Probably should yum groupinstall minimal
+   - Won't include nfs dracut module for some reason
+      - Needs rpcbind or portmap
+      - Needs rpc.statd mount.nfs mount.nfs4
+   - dracut -NM --force --verbose initramfs.img
+
+
