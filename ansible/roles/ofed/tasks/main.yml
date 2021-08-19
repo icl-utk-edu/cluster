@@ -1,0 +1,7 @@
+
+- name: Remove limits
+  copy: src=limits.conf dest=/etc/security/limits.conf
+
+- name: OFED packages
+  yum: name=libpsm2-devel
+  when: ansible_os_family == "RedHat"

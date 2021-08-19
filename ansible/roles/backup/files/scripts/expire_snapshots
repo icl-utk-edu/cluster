@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Delete all but N=$MAXSNAP number of zfs snapshots 
+
+MAXSNAP=30
+SNAP=($(/usr/sbin/zfs list -H -t snapshot | awk '{print $1}' | sort -r))
+for s in "${SNAP[@]}"
+do
+  ((MAXSNAP-=1))
+  if [ $MAXSNAP -lt 0 ] ; then
+    #echo Deleting snapshot $s
+    /usr/sbin/zfs destroy $s
+  fi
+done

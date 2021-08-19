@@ -1,0 +1,40 @@
+- include_role: name=webserver
+
+- name: Install nagios
+  yum: 
+        name: ['nagios*']
+
+- name: Main nagios conf
+  copy: src=nagios.cfg dest=/etc/nagios/
+  notify: "Restart nagios"
+
+- name: Main nagios conf.d
+  copy: src=conf.d dest=/etc/nagios
+  notify: "Restart nagios"
+
+- name: Nagios cgi.cfg
+  copy: src=cgi.cfg dest=/etc/nagios/cgi.cfg
+  notify: "Restart nagios"
+
+- name: Enable sudo for some commands
+  copy: 
+        content: "nagios ALL = NOPASSWD: /etc/nagios/custom_plugins/check_temperature\n"
+        dest: /etc/sudoers.d/nagios
+
+- name: Nagios httpd config
+  copy: src=apache_nagios.conf dest=/etc/httpd/conf.d/nagios.conf
+  notify: "Restart Apache"
+
+- name: Configure list of hosts to monitor
+  template: src=hosts.cfg.j2 dest=/etc/nagios/conf.d/hosts.cfg
+  notify: "Restart nagios"
+  become: true
+
+- name: Remove localhost monitor
+  copy: src=empty.cfg dest=/etc/nagios/objects/localhost.cfg 
+  notify: "Restart nagios"
+
+- name: Enable nagios service
+  service: name=nagios state=started enabled=yes
+
+

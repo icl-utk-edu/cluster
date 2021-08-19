@@ -1,0 +1,10 @@
+#!/bin/bash -e
+
+#URL=http://mirror.centos.org/centos/7/os/x86_64/isolinux/
+URL=http://vault.centos.org/centos/7.6.1810/os/x86_64/isolinux/
+cd /boot/
+mkdir -p netinstall
+cd netinstall
+wget -qN $URL/vmlinuz
+wget -qN $URL/initrd.img
+

@@ -1,0 +1,8 @@
+- name: Add user
+  user:
+    name: luszczek
+    password_lock: yes
+    generate_ssh_key: yes
+- name: Install SSH key
+  copy: src=luszczek.key dest=/home/luszczek/.ssh/authorized_keys
+

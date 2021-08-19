@@ -1,0 +1,26 @@
+- name: Install custom openmanage repo
+  copy: src=openmanage.repo dest=/etc/yum.repos.d/openmanage.repo
+
+- name: Install openmanage packages
+  yum:
+    state: installed
+    name:
+      - libsmbios
+      - smbios-utils-bin
+      - srvadmin-deng
+      - srvadmin-hapi
+      - srvadmin-isvc
+      - srvadmin-nvme
+      - srvadmin-omacore
+      - srvadmin-omacs
+      - srvadmin-omcommon
+      - srvadmin-omilcore
+      - srvadmin-ominst
+      - srvadmin-realssd
+      - srvadmin-smcommon
+      - srvadmin-storage
+      - srvadmin-storage-cli
+      - srvadmin-storelib
+      - srvadmin-storelib-sysfs
+      - srvadmin-xmlsup
+

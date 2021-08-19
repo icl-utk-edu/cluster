@@ -1,0 +1,7 @@
+[cuda]
+name=cuda
+baseurl=http://developer.download.nvidia.com/compute/cuda/repos/rhel7/ppc64le
+enabled=1
+gpgcheck=0
+#gpgkey=http://developer.download.nvidia.com/compute/cuda/repos/rhel7/ppc64le/7fa2af80.pub
+

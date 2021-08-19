@@ -1,0 +1,16 @@
+
+- name: Install certbot
+  yum: name=certbot-apache
+
+- name: Run certbot
+  command: certbot certonly --standalone --agree-tos -m icl-it-verbose@icl.utk.edu -d {{ inventory_hostname }} -n
+  args:
+    creates: /etc/letsencrypt/live/{{ inventory_hostname }}/cert.pem.conf
+
+- name: Renew letsencrypt cron
+  cron:
+    name: "Renew letsencrypt cert"
+    job: "certbot renew"
+    minute: 1
+    hour: 1
+    day: 1

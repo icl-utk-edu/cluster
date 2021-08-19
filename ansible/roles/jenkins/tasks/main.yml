@@ -1,0 +1,19 @@
+- include_role: name=docker
+
+- name: Install jenkins software repo 
+  copy: src=jenkins.repo dest=/etc/yum.repos.d/jenkins.repo
+
+- name: Install jenkins repo key
+  copy: src=jenkins.key dest=/etc/pki/rpm-gpg/jenkins.key
+
+- name: Install jenkins
+  yum: 
+    name: ['jenkins', 'java', 'git', 'hg', '@development']
+
+#- name: Add jenkins to docker group
+#  user: name=jenkins groups=docker append=yes
+
+- name: Enable jenkins service
+  service: name=jenkins state=started enabled=yes
+
+

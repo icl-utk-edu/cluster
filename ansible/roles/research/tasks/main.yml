@@ -1,0 +1,51 @@
+
+- name: Install research packages (RedHat)
+  yum: 
+    state: present
+    name:
+      - "@development"
+      - "@^compute-node-environment"
+      - "@infiniband"
+      - "@performance"
+      - "@debugging"
+      - binutils-devel
+      - hmaccalc
+      - ncurses-devel
+      - readline-devel
+      - tigervnc
+      - vim-X11
+      - zlib-devel
+      - pcp-libs-devel
+      - OpenIPMI
+      - perl-DBD-SQLite
+      - glibc-static
+      - screen
+      - numactl-devel
+  when: ansible_os_family == "RedHat"
+
+- name: Install research packages (All)
+  yum:
+    state: present
+    name:
+      - git
+      - tmux
+      - emacs-nox
+      - mercurial
+      - numactl
+      - tcl
+      - cpuid
+      - deltarpm
+      - zsh
+      - hwloc
+      - xauth
+
+- name: Enable custom modules.sh
+  copy: src=modules.sh dest=/etc/profile.d/modules.sh
+
+- name: Enable custom modules.csh
+  copy: src=modules.csh dest=/etc/profile.d/modules.csh
+
+- name: Mount tmpfs on /tmp
+  service: name=tmp.mount enabled=yes
+  when: ansible_os_family == "RedHat"
+

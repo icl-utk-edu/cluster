@@ -1,0 +1,13 @@
+- include_role: name=epel
+
+- name: Install Ganglia gmond
+  yum: 
+        name: ['ganglia-gmond']
+
+- name: Enable Ganglia gmond service
+  service: name=gmond state=started enabled=yes
+
+- name: Configure gmond
+  copy: src={{gmond_conf}} dest=/etc/ganglia/gmond.conf
+  notify: "Restart Ganglia gmond"
+

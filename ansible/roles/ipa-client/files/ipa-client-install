@@ -1,0 +1,7 @@
+#!/bin/sh
+
+ipa-client-install --server vm0.icl.utk.edu --domain icl.utk.edu  --mkhomedir -p admin
+
+ipa-client-automount --server=vm0.icl.utk.edu --location=default --unattended
+
+

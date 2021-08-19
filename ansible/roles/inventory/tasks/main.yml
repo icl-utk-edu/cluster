@@ -1,0 +1,16 @@
+- name: Install inventory cron script
+  get_url:
+     url: https://admin.icl.utk.edu/inventory/inventory.cron
+     dest: /etc/cron.daily/inventory
+     mode: 0755
+     validate_certs: no
+
+- name: Required packages
+  yum: 
+     name: ['pciutils', 'util-linux', 'yum-utils', 'curl', 'lshw']
+
+- name: Optional packages
+  yum: 
+     name: ['cpuid', 'dmidecode']
+  when: (ansible_architecture == 'x86_64') and (ansible_distribution_major_version < '8')
+

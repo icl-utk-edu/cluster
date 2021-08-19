@@ -1,0 +1,5 @@
+
+- name: Install nvidia kernel module custom parameters
+  copy: src=nvidia.conf dest=/etc/modprobe.d/
+
+

@@ -1,0 +1,7 @@
+- name: Create cron for automatic updates
+  cron:
+    name: "Automatic updates"
+    job: "/usr/bin/yum -y --quiet update; /usr/sbin/shutdown -r +60"
+    minute: 1
+    hour: "1"
+    weekday: 1

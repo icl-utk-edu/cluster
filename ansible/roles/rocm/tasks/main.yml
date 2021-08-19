@@ -1,0 +1,33 @@
+- include_role: name=epel
+- include_role: name=cuda_repo
+
+#- name: Install yum versionlock
+#  yum: name=yum-plugin-versionlock
+
+#- name: Freeze kernel version
+#  command:
+#     cmd: yum versionlock add kernel-3.10.0-1062.18.1.el7.*
+#     warn: false
+
+- name: Install ROCM yum repository
+  copy: src=rocm.repo dest=/etc/yum.repos.d/
+
+#- name: Install scl repo
+#  yum: name=centos-release-scl
+
+#- name: Install devtoolset-7
+#  yum: name=devtoolset-7
+
+- name: Install ROCM packages
+  yum:
+    enablerepo: rocm
+    name: ['rocm-dkms', 'roctracer-dev', 'hipblas', 'rocblas', 'hipsparse', 'hip-nvcc', 'rocsparse', 'rocprim', 'rocsolver', 'rocfft', 'rocprofiler-dev']
+
+# removed aomp-amdgpu
+
+- name: Copy install script
+  copy: src=install_rocm.sh dest=/root/ mode=755
+
+- name: Copy uninstall script
+  copy: src=uninstall_rocm.sh dest=/root/ mode=755
+

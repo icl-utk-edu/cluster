@@ -1,0 +1,8 @@
+
+- include_role: name=zfs
+
+- name: Install Perl modules
+  yum: name=perl-TimeDate
+
+- name: Install backup scripts
+  copy: src=scripts dest=/main/scripts

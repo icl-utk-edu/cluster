@@ -1,0 +1,11 @@
+
+- name: Enable gdrcopy RPM repo
+  copy: src=gdrcopy.repo dest=/etc/yum.repos.d/
+
+- name: Install gdrcopy
+  yum:
+    state: installed
+    name:
+      - gdrcopy
+      - gdrcopy-kmod
+      - gdrcopy-devel

@@ -1,0 +1,5 @@
+
+- name: Install yum repository for CUDA
+  copy: src=cuda.repo dest=/etc/yum.repos.d/cuda.repo
+
+

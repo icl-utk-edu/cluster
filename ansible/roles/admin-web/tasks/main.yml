@@ -1,0 +1,50 @@
+- include_role: name=webserver
+- include_role: name=database
+- include_role: name=firewall
+
+- name: Install required Perl packages
+  yum: name=perl-{{ item }}
+  with_items:
+          - CGI
+          - DBD-MySQL
+          - HTML-Template
+          - TimeDate
+          - MailTools
+          - Date-Calc
+
+- name: Copy website files
+  copy: src=html/ dest=/var/www/html/ mode=preserve
+
+- name: Set SELinux context
+  file: path=/var/www/html/inventory/{{ item }} setype=httpd_sys_script_exec_t
+  with_items:
+        - crud.cgi
+        - hostreport.cgi
+
+#- name: Allow apache to make network connections
+#  setsebool: name=httpd_can_network_connect state=yes persistent=yes
+
+#- name: Allow apache to send email
+#  setsebool: name=httpd_can_sendmail state=yes persistent=yes
+
+- name: Copy web server config for inventory
+  copy: src=inventory.conf dest=/etc/httpd/conf.d/inventory.conf
+  notify: "Restart Apache"
+
+- name: Copy web server config for acctmgr
+  copy: src=acctmgr.conf dest=/etc/httpd/conf.d/acctmgr.conf
+  notify: "Restart Apache"
+
+- name: Enable firewall access HTTP public
+  firewalld: service=http zone=public state=enabled permanent=true immediate=true
+- name: Enable firewall access HTTPS public
+  firewalld: service=https zone=public state=enabled permanent=true immediate=true
+- name: Enable firewall access HTTP utk
+  firewalld: service=http zone=utk state=enabled permanent=true immediate=true
+- name: Enable firewall access HTTPS utk
+  firewalld: service=https zone=utk state=enabled permanent=true immediate=true
+
+  #- name: Disable SSH on public zone
+  #  firewalld: service=ssh zone=public state=disabled permanent=true immediate=true
+
+- include_role: name=letsencrypt
