@@ -3,4 +3,5 @@ qhost | grep -v zeta | grep eta | awk '{print $1}' | xargs -n 1 -Iggg qconf -mat
 
 perl -wne '/: (.+)/;$h{$1}=$c++ unless $s{$1}++;print "$h{$1} $s{$1} $1\n"' temp.log
 
+(cpio -id; zcat | cpio -id) < ../initramfs.img
 

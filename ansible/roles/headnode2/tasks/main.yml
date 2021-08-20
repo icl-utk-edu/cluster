@@ -15,5 +15,10 @@
 
 - name: Configure dnsmasq docker image
   copy: src=dnsmasq dest=/opt/ mode=preserve
-  notify: "Reconfigure dnsmasq docker"
+#  notify: "Reconfigure dnsmasq docker"
+
+#- name: Authorixed self-ssh
+
+- name: Create cluster config
+  shell: mkdir -p /opt/cluster/config/
 

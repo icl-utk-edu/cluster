@@ -1,5 +1,5 @@
-- name: Reconfigure dnsmasq docker
-  shell: /opt/dnsmasq/run.sh rebuild
+#- name: Reconfigure dnsmasq docker
+#  shell: /opt/dnsmasq/run.sh rebuild
 
 - name: ifup em2
   shell: ifup em2
