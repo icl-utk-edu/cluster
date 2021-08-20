@@ -1,7 +1,5 @@
 #!/bin/bash -e
 
-CONF=/opt/cluster/config
-
 NAME=dnsmasq
 cd /opt/$NAME
 
@@ -11,6 +9,9 @@ if [[ $1 == 'rebuild' ]]; then
    docker build -t $NAME .
 fi
 
+CONF=/opt/cluster/config
+mkdir -p $CONF
+cp -a /opt/$NAME/pxe $CONF/
 NODES=$CONF/dnsmasq-nodes.conf
 touch $NODES
 
