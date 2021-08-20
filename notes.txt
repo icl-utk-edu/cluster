@@ -1,10 +1,9 @@
-Build initrd within container
-   - Need to specify kernel version
-   - yum install dracut dracut-network dracut-config-generic kernel
-   - Probably should yum groupinstall minimal
-   - Won't include nfs dracut module for some reason
-      - Needs rpcbind or portmap
-      - Needs rpc.statd mount.nfs mount.nfs4
-   - dracut -NM --force --verbose initramfs.img
+Config dir: /opt/cluster/config
+
+Provisioning Strategy:
+  - Boot node into default OS image
+  - SSH to node to get BMC IP
+  - Insert node into database
+  - Use local ipmitool to set IPMI username and password
 
 
