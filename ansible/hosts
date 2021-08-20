@@ -1,6 +1,6 @@
+[clusters]
 sorbitol.icl.utk.edu
 saturn.icl.utk.edu
-hydrogen.icl.utk.edu
 
 [redhatServer]
 venus.icl.utk.edu
@@ -66,6 +66,7 @@ omega2.icl.utk.edu
 cupid.icl.utk.edu
 dancer.icl.utk.edu
 thog.icl.utk.edu
+hydrogen.icl.utk.edu
 
 [radeon]
 histamine0.icl.utk.edu
