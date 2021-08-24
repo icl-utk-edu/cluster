@@ -1,9 +1,8 @@
-DEFAULT menu.c32
+DEFAULT Boot
 PROMPT 0
-TIMEOUT 30
-MENU TITLE Boot Menu
+TIMEOUT 10
 
-LABEL 1
+LABEL Boot
    MENU LABEL Network boot
    KERNEL vmlinuz
    APPEND initrd=initramfs.img root=nfs:10.0.0.4:/mnt/cluster/OS ipmi_si.force_kipmid=0 numa_balancing=disable

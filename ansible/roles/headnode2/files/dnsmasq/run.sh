@@ -6,6 +6,7 @@ cd /opt/$NAME
 docker stop $NAME || true
 
 if [[ $1 == 'rebuild' ]]; then
+   docker rm $NAME
    docker build -t $NAME .
 fi
 
@@ -15,7 +16,7 @@ cp -a /opt/$NAME/pxe $CONF/
 NODES=$CONF/dnsmasq-nodes.conf
 touch $NODES
 
-docker run --name $NAME -d --rm --restart=unless-stopped \
+docker run --name $NAME -d --restart=unless-stopped \
    --net host \
    -v $NODES:/etc/dnsmasq.d/nodes.conf \
    -v $CONF/pxe:/pxe \
