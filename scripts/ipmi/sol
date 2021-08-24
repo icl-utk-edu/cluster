@@ -1,6 +1,0 @@
-#!/bin/sh
-
-export BMC_PASSWD=`sudo bmc_passwd`
-
-/usr/bin/ipmitool -H $1 -I lanplus -U root -P $BMC_PASSWD sol activate
-
