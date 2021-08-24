@@ -16,8 +16,6 @@ use Digest::MD5 'md5_base64';
 use URI::Escape;
 use Parallel;
 
-#$ENV{SGE_ROOT} = '/opt/grid';
-#$ENV{SGE_QMASTER_PORT}=536;
 our $adminEmail = 'Newton_HPC_help@utk.edu';
 my $basedir = "/newton/scripts";
 my $ssh_cmd = "ssh -nqxC -o 'ConnectTimeout=2' -o 'BatchMode=yes'";
@@ -420,21 +418,6 @@ sub userinfo {
   db() unless defined $db;
   my $hash = $db->selectrow_hashref('select u.username,uid,g.groupname,gid FROM users u JOIN memberships m JOIN groups g ON u.username=m.username AND m.groupname=g.groupname WHERE u.username=? AND prime=1', undef, $user);
   return map {$hash->{$_}} @req;
-  }
-
-sub setGridUserProject {
-  my ($user, $project) = @_;
-  my $info = `qconf -suser $user 2>&1`;
-  my ($current) = $info =~ /default_project\s+(\S+)/s;
-  return if defined $current and $project eq $current;
-  my $file = '/tmp/.sge' . rand();
-  open(TMP, "+> $file") or die $!;
-  flock(TMP, 2);
-  print TMP "name $user\noticket 0\nfshare 0\ndelete_time 0\ndefault_project $project";
-  close TMP;
-  my $cmd = $info =~ /not known/ ? 'A' : 'M';
-  `sudo -i qconf -${cmd}user $file`;
-  unlink $file;
   }
 
 sub ipaddr { # convert integer to ip address
