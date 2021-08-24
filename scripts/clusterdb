@@ -1,4 +1,12 @@
 #!/bin/sh
 
-sqlite3 -init /newton/scripts/sqlite.init /newton/scripts/cluster.db "$@"
+DIR=`dirname $0`
+DB=/opt/cluster/config/cluster.db
+
+if [ ! -e $DB ];then
+   echo Creating cluster database...
+   cp $DIR/db.init $DB
+fi
+
+sqlite3 -init $DIR/sqlite.init $DB "$@"
 
