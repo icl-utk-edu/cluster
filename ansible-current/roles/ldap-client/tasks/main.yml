@@ -1,0 +1,20 @@
+- name: Install sssd
+  yum: name=sssd-ldap 
+
+- name: Configure sssd.conf
+  copy: src=sssd.conf dest=/etc/sssd/sssd.conf
+  notify: "Restart sssd"
+
+- name: Enable sssd
+  service: name=sssd state=started enabled=yes
+
+- name: Configure nsswitch.conf
+  copy: src=nsswitch.conf dest=/etc/nsswitch.conf
+  notify: "Restart autofs"
+
+- name: Install autofs
+  yum: name=autofs,nfs-utils
+
+- name: Enable autofs
+  service: name=autofs state=started enabled=yes
+

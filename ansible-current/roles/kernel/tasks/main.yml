@@ -1,0 +1,13 @@
+- name: Install custom kernel repo
+  copy: src=kernel.repo dest=/etc/yum.repos.d/kernel.repo
+
+- name: Install kernel-ml
+  yum:
+    enablerepo: elrepo-kernel
+    name: [ 'kernel-ml', 'kernel-ml-devel']
+
+- name: Make new kernel the default
+  shell: grub2-set-default 0
+
+- name: Disable updates for the stock kernel
+  lineinfile: path=/etc/yum.conf line="exclude=kernel" 

@@ -1,0 +1,39 @@
+- include_role: name=firewall
+
+- name: Install netatalk
+  yum: name=netatalk
+
+- name: Install avahi
+  yum: name=avahi
+
+- name: Configure AFP
+  copy: src=afp.conf dest=/etc/netatalk/afp.conf
+  notify: "Restart avahi-daemon"
+
+- name: Enable avahi service
+  service: name=avahi-daemon state=started enabled=yes
+
+- name: Enable Netatalk service
+  service: name=netatalk state=started enabled=yes
+
+- name: Open avahi port
+  firewalld: port=5353/tcp zone=utk state=enabled permanent=true immediate=true
+
+- name: Open AFP port
+  firewalld: port=548/tcp zone=utk state=enabled permanent=true immediate=true
+
+- name: Open avahi port icl
+  firewalld: port=5353/tcp zone=internal state=enabled permanent=true immediate=true
+
+- name: Open AFP port icl
+  firewalld: port=548/tcp zone=internal state=enabled permanent=true immediate=true
+
+- name: Add cron script
+  copy: src=make_timemachine_users dest=/opt/make_timemachine_users mode=0755
+
+- name: Create cron for timemachine users script
+  cron:
+    name: "Create TimeMachine users"
+    job: "/opt/make_timemachine_users"
+    minute: 1
+    hour: "*"

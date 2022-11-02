@@ -1,0 +1,19 @@
+- include_role: name=ganglia-gmond
+
+- name: Install ganglia gmetad
+  yum: 
+        name: ganglia-gmetad
+
+- name: Enable Ganglia gmetad service
+  service: name=gmetad state=started enabled=yes
+
+- name: Configure gmetad
+  copy: src=gmetad.conf dest=/etc/ganglia/
+  notify: "Restart Ganglia gmetad"
+
+- name: Open UDP port for Ganglia
+  firewalld: port=8649/udp zone=internal permanent=true state=enabled immediate=yes
+
+- name: Open TCP port for Ganglia
+  firewalld: port=8649/tcp zone=internal permanent=true state=enabled immediate=yes
+

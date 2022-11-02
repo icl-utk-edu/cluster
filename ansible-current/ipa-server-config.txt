@@ -1,0 +1,10 @@
+
+yum install ipa-server
+ipa-server-install
+
+ - Disable nscd on server and clients
+ - Open network ports 
+     tcp 80,443,389,636,88,464 
+     udp 88,464
+ - Backup: CA certs, ipa database
+

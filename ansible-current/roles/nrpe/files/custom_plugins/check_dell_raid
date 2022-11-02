@@ -1,0 +1,48 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use lib '/usr/lib64/nagios/plugins';
+use utils '%ERRORS';
+
+my @msg = (
+  ['OK', 'RAID status OK'],
+  ['WARNING', 'RAID array rebuilding'],
+  ['WARNING', 'Non-Critical RAID array warning'],
+  ['WARNING', 'Controller cache is disabled'],
+  ['CRITICAL', 'Degraded RAID detected'],
+  ['CRITICAL', 'Unknown state'],
+  );
+
+my @arrays = `/opt/dell/srvadmin/bin/omreport storage vdisk 2>&1`;
+if(@arrays <  5){
+  print "OK: No RAID controller present\n";
+  exit $ERRORS{'OK'};
+}
+
+
+my %int = (
+  Ok => 1,
+  Ready => 1,
+  Online => 1,
+  Rebuilding => 2,
+  'Non-Critical' => 3,
+  Degraded => 3,
+  Critical => 5,
+  Failed => 5,
+  );
+my ($num) = map {$int{$_} || 6}
+            sort {($int{$b}||6) <=> ($int{$a}||6)}
+            map {$_->[2]} 
+            grep {$_->[0] eq 'Status' or $_->[0] eq 'State'}
+            grep {defined $_->[2]}
+            map {chomp;[split /\s+/]}
+            @arrays;
+
+unless(grep /Write Policy\s+:\s+Write Back/, @arrays){
+  $num = 4 if $num < 4;
+  }
+
+my ($code, $msg) = @{ $msg[$num - 1] };
+print "$code: $msg\n";
+exit $ERRORS{$code};

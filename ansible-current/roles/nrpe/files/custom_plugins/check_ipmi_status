@@ -1,0 +1,37 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use lib '/usr/lib64/nagios/plugins';
+use utils '%ERRORS';
+
+my @status = map {chomp; [split /\s+:\s+/]}
+             grep !/Button/, `ipmitool chassis status`;
+my $err;
+for(@status){
+   my ($param, $state) = (@$_, '');
+   next unless $state eq 'true' or $state eq 'active';
+   $err .= "$param=$state\n";
+}
+
+my $code = defined($err) ? 'WARNING' : 'OK';
+$err ||= 'All good';
+
+print "$code: $err\n";
+exit $ERRORS{$code};
+
+
+__END__
+System Power         : on
+Power Overload       : false
+Power Interlock      : inactive
+Main Power Fault     : false
+Power Control Fault  : false
+Power Restore Policy : always-on
+Last Power Event     : 
+Chassis Intrusion    : inactive
+Front-Panel Lockout  : inactive
+Drive Fault          : true
+Cooling/Fan Fault    : false
+
+

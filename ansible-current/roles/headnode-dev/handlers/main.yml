@@ -1,0 +1,3 @@
+- name: Restart network
+  service: name=network state=restarted
+

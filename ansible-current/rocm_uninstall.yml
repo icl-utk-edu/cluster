@@ -1,0 +1,8 @@
+
+- hosts: all
+  remote_user: root
+  tasks:
+  - name: uninstall ROCM packages
+    command: /root/uninstall_rocm.sh
+
+

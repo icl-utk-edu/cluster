@@ -1,0 +1,2 @@
+/cluster/nfs/OS  192.168.56.0/24(rw,no_root_squash,no_subtree_check,fsid=root)
+

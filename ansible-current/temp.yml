@@ -1,0 +1,6 @@
+
+- hosts: xsdk.icl.utk.edu
+  remote_user: root
+  roles:
+    - kernel
+

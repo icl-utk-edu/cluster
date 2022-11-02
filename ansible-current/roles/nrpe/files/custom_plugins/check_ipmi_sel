@@ -1,0 +1,46 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use lib '/usr/lib64/nagios/plugins';
+use utils '%ERRORS';
+use Date::Parse 'str2time';
+
+my @sel = map {chomp; [split /\s*\|\s*/]}
+          `ipmitool sel list`;
+
+my @newmessages;
+for(@sel){
+   my ($id, $date, $time, $item, $event, $status) = @$_;
+   next unless defined $time;
+   my $full = join(' | ', @$_);
+   $time = str2time("$date $time") || 0;
+   next if time()-$time>3600*24*2;
+   push @newmessages, $full;
+}
+
+my $code = @newmessages ? 'WARNING' : 'OK';
+my $message = join("\n", @newmessages) || 'No recent events';
+
+print "$code: $message\n";
+exit $ERRORS{$code};
+
+
+__END__
+
+  b2 | 10/09/2020 | 23:37:37 | OS Boot | Installation started | Asserted
+  b3 | 10/10/2020 | 00:26:25 | Drive Slot / Bay #0x8b | Drive Present () | Asserted
+  b4 | 02/06/2021 | 21:55:59 | Battery #0x11 | Low | Asserted
+  b5 | 02/10/2021 | 02:39:53 | Battery #0x11 | Low | Deasserted
+  b6 | 07/04/2021 | 21:13:59 | Drive Slot / Bay #0x8b | Drive Fault () | Asserted
+  b7 | 07/30/2021 | 15:13:59 | Drive Slot / Bay #0x8b | Drive Fault () | Deasserted
+  b8 | 07/30/2021 | 15:14:39 | Drive Slot / Bay #0x8b | Drive Fault () | Asserted
+  b9 | 07/30/2021 | 19:14:53 | Unknown #0x99 |  | Asserted
+  ba | 07/30/2021 | 19:16:25 | Battery #0x11 | Low | Asserted
+  bb | 07/30/2021 | 15:43:57 | Drive Slot / Bay #0x8b | Drive Fault () | Deasserted
+  bc | 07/30/2021 | 19:44:03 | Drive Slot / Bay #0x8b | Drive Fault () | Asserted
+  bd | 08/09/2021 | 03:47:31 | Drive Slot / Bay #0x8b | Drive Fault () | Asserted
+  be | 08/09/2021 | 03:47:51 | Battery #0x11 | Low | Asserted
+  bf | 08/10/2021 | 05:38:55 | Battery #0x11 | Low | Deasserted
+  c0 | 01/15/2022 | 16:59:27 | Drive Slot / Bay #0x8b | Drive Fault () | Asserted
+

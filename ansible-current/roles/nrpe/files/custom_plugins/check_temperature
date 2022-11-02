@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+
+# Warn when the ambient temperature reaches a given point
+
+use strict;
+use warnings;
+use lib '/usr/lib64/nagios/plugins';
+use utils '%ERRORS';
+
+my $warn_temperature = shift @ARGV || die "Require threshold temperature as argument!";
+
+my ($temperature) = `ipmitool sensor get "Ambient Temp"` =~ /Reading\s+: (\d+)/s;
+
+finish('OK', "$temperature ºC") 
+  if defined $temperature and $temperature < $warn_temperature;
+finish('WARNING', "$temperature ºC!");
+
+sub finish {
+  my ($code, $msg) = @_;
+  print "Ambient temperature $code: $msg\n";
+  exit $ERRORS{$code};
+  }

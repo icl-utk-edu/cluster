@@ -1,0 +1,37 @@
+- name: Install custom openmanage repo
+  copy: src=openmanage.repo dest=/etc/yum.repos.d/openmanage.repo
+
+- name: Install openmanage packages
+  yum:
+    state: installed
+    name:
+      - libsmbios
+      - smbios-utils-bin
+      - srvadmin-deng
+      - srvadmin-hapi
+      - srvadmin-isvc
+      - srvadmin-nvme
+      - srvadmin-omacore
+      - srvadmin-omacs
+      - srvadmin-omcommon
+      - srvadmin-omilcore
+      - srvadmin-ominst
+      - srvadmin-realssd
+      - srvadmin-smcommon
+      - srvadmin-storage
+      - srvadmin-storage-cli
+      - srvadmin-storelib
+      - srvadmin-storelib-sysfs
+      - srvadmin-xmlsup
+
+- name: Install Perl modules
+  yum: name=perl-TimeDate
+
+- name : Periodically dump the RAID controller logs
+  cron:
+    name: "dump_raid_controller_logs"
+    job: "rm -f /var/log/lsi_*.log; /opt/dell/srvadmin/bin/omconfig storage controller action=exportlog controller=0 > /dev/null 2>&1"
+    minute: 1
+    hour: "1"
+
+

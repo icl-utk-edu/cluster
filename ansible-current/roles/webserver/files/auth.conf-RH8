@@ -1,0 +1,13 @@
+
+Alias /errors "/var/www/errors"
+
+<Location />
+  AuthType GSSAPI
+  AuthName "ICL Login"
+  GssapiCredStore keytab:/opt/apache/http.keytab
+  GssapiAllowedMech krb5
+  GssapiBasicAuth On
+  ErrorDocument 401 /errors/401.html
+</Location>
+
+

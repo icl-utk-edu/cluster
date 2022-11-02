@@ -1,0 +1,10 @@
+- name: Install ipa-client
+  yum: name=ipa-client
+  when: ansible_os_family == "RedHat"
+
+- name: Install ipa-client
+  yum: name=freeipa-client
+  when: ansible_os_family == "Debian"
+
+- name: Add setup script
+  copy: src=ipa-client-install dest=/root/ipa-client-install mode=700

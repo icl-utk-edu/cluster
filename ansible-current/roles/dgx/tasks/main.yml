@@ -1,0 +1,39 @@
+# https://docs.nvidia.com/dgx/dgx-rhel-install-guide/installing-dgx-sw.html
+
+- name: Install DGX yum repo
+  copy: src=nvidia-dgx-7.repo dest=/etc/yum.repos.d/
+
+- name: Install DGX yum repo GPG key
+  copy: src=RPM-GPG-KEY-dgx-cosmos-support dest=/etc/pki/rpm-gpg/
+
+- name: Install DGX software
+  yum:
+    state: present
+    enablerepo: 'nvidia-dgx-7,nvidia-dgx-7-updates,nvidia-dgx-7-r470-cuda11-4'
+    name:
+      - "@DGX-1 Configurations"
+      - kernel-devel
+      - cuda-drivers
+      - cuda-drivers-diagnostic
+      - dgx-persistence-mode
+      
+- name: Install optional DGX software
+  yum:
+    state: present
+    enablerepo: 'nvidia-dgx-7,nvidia-dgx-7-updates,nvidia-dgx-7-r470-cuda11-4'
+    name:
+      - "@NVIDIA Collectives Communication Library Runtime"
+      - "@CUDA Deep Neural Networks Library Runtime"
+      - tensorrt
+      - cuda
+
+# This package controls nvidia.conf and must be removed
+- name: Remove problematic package
+  yum: 
+     state: absent
+     name: dgx-no-check-pci-config
+
+- name: Install nvidia kernel module custom parameters
+  copy: src=nvidia.conf dest=/etc/modprobe.d/
+
+

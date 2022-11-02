@@ -1,0 +1,12 @@
+
+- name: Enable NAT
+  firewalld: zone=public masquerade=true state=enabled permanent=true immediate=true
+
+- name: Enable IPv4 forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    state: present
+    reload: True
+
+

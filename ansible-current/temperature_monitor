@@ -1,0 +1,9 @@
+#!/bin/bash
+
+printf -v TEMP %.0f `ipmitool sensor | grep "Ambient Temp" | awk -F\| '{print $2}'`
+
+if [ $TEMP -gt 25 ]
+then
+  echo Temperature is $TEMP
+fi
+

@@ -1,0 +1,21 @@
+- name: Script file for implementing system modifications for PAPI
+  copy: src=papi_mods.sh dest=/opt/papi_mods.sh mode=755
+- name: Cron to implement KNL system changes on boot
+  cron: 
+    name: "PAPI modifications"
+    job: "/opt/papi_mods.sh"
+    special_time: reboot
+
+- name : Cron to implement system changes periodically for PAPI
+  cron:
+    name: "PAPI modifications periodic"
+    job: "/opt/papi_mods.sh"
+    minute: 1
+    hour: "*"
+
+- name: Install Performance Co-pilot
+  yum: name=pcp state=installed
+
+- name: Enable PCP service
+  service: name=pmcd state=started enabled=yes
+

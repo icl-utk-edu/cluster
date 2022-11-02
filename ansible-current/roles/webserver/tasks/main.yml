@@ -1,0 +1,40 @@
+- include_role: name=firewall
+
+- name: Install apache web server
+  yum: 
+        name: ['httpd', 'mod_ssl', 'mod_ldap', 'mod_auth_gssapi', 'mod_authnz_pam']
+  notify: "Restart Apache"
+
+- name: Install mod_auth_kerb
+  yum: name=mod_auth_kerb
+  notify: "Restart Apache"
+  when: ansible_distribution_major_version < '8'
+
+- name: Enable apache service
+  service: name=httpd state=started enabled=yes
+
+- name: Config http auth
+  copy: src=auth.conf dest=/etc/httpd/conf.d
+  notify: "Restart Apache"
+  when: ansible_distribution_major_version < '8'
+
+- name: Config http auth
+  copy: src=auth.conf-RH8 dest=/etc/httpd/conf.d
+  notify: "Restart Apache"
+  when: ansible_distribution_major_version == '8'
+
+- name: Error documents
+  copy: src=errors dest=/var/www
+
+- name: Enable firewall access HTTP public
+  firewalld: service=http zone=public state=enabled permanent=true immediate=true
+- name: Enable firewall access HTTPS public
+  firewalld: service=https zone=public state=enabled permanent=true immediate=true
+- name: Enable firewall access HTTP utk
+  firewalld: service=http zone=utk state=enabled permanent=true immediate=true
+- name: Enable firewall access HTTPS utk
+  firewalld: service=https zone=utk state=enabled permanent=true immediate=true
+- name: Enable firewall access HTTP internal
+  firewalld: service=http zone=internal state=enabled permanent=true immediate=true
+- name: Enable firewall access HTTPS internal
+  firewalld: service=https zone=internal state=enabled permanent=true immediate=true

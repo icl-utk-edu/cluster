@@ -1,0 +1,42 @@
+
+define host {
+
+    name                            icl-server            ; The name of this host template
+    use                             generic-host            ; This template inherits other values from the generic-host template
+    check_period                    24x7                    ; By default, Linux hosts are checked round the clock
+    check_interval                  5                       ; Actively check the host every 5 minutes
+    retry_interval                  1                       ; Schedule host check retries at 1 minute intervals
+    max_check_attempts              10                      ; Check each Linux host 10 times (max)
+    check_command                   check-host-alive        ; Default command to check Linux hosts
+    notification_interval           1440                    ; Resend notifications every 24 hours
+    notification_options            d,u,r                   ; Only send notifications for specific host states
+    contact_groups                  admins                  ; Notifications get sent to the admins by default
+    register                        0                       ; DON'T REGISTER THIS DEFINITION - ITS NOT A REAL HOST, JUST A TEMPLATE!
+}
+
+
+{% for host in groups['all'] %}
+define host {
+        use		icl-server
+        host_name	{{ host }}
+        hostgroups      allhosts
+{% if hostvars[host].ansible_default_ipv4 is defined %}
+        address		{{ hostvars[host].ansible_default_ipv4.address }}
+{% else %}
+	address	 10.1.1.1
+{% endif %}
+}
+{% endfor %}
+
+define hostgroup {
+	hostgroup_name allhosts
+}
+
+{% for group in groups %}
+{% if groups[group] %}
+define hostgroup {
+        hostgroup_name {{ group }}
+        members {{ groups[group]|join(',') }}
+}
+{% endif %}
+{% endfor %}

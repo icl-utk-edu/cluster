@@ -1,0 +1,10 @@
+/dev
+/proc
+/sys
+/bin
+/usr
+/var/log
+/boot
+/tmp
+/var/tmp
+

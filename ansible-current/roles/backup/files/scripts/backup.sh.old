@@ -1,0 +1,45 @@
+#!/bin/sh
+
+LOCKFILE=/tmp/.backup.lock
+if [ -e ${LOCKFILE} ] && kill -0 `cat ${LOCKFILE}`; then
+    #echo "A previous backup process is already running. Exiting..."
+    exit
+fi
+
+RSYNC="rsync -za --delete --delete-excluded --exclude-from=/main/scripts/backup.excl"
+
+# make sure the lockfile is removed when we exit and then claim it
+trap "rm -f ${LOCKFILE}; exit" INT TERM EXIT
+echo $$ > ${LOCKFILE}
+
+$RSYNC \
+  --exclude="/var/lib/nfs" \
+  --exclude="/run" \
+  --exclude="/var/chroots" \
+  --exclude="/scratch" \
+  saturn.icl.utk.edu:/ /main/data/saturn/ || echo Error saturn &
+
+$RSYNC \
+  --exclude="/var/lib/nfs" \
+  --exclude="/export/homes/*/*.tgz" \
+  --exclude="/export/homes/*/*.tar.*" \
+  --exclude="/export/homes/*/*.old/**" \
+  --exclude="/mnt/scratch" \
+  venus.icl.utk.edu:/ /main/data/venus/ || echo Error venus &
+
+$RSYNC -x --exclude=/sw/logs ash2.icl.utk.edu:/ ash2.icl.utk.edu:/sw /main/data/ash2/ || echo Error ash2 &
+
+$RSYNC --exclude=home/oldhomes omega0.icl.utk.edu:/mnt/ /main/data/omega0/ || echo Error omega0 &
+
+$RSYNC -e 'ssh -p22022' --exclude=/mnt --exclude=/TimeMachine root@woodserv.caedes.net:/ /main/data/wood/ || echo Error wood &
+
+$RSYNC --exclude=/home --exclude=/nfs root@phi.icl.utk.edu:/ /main/data/phi/ || echo Error phi &
+
+$RSYNC --exclude=jenkins/workspace root@xylitol.icl.utk.edu:/var/lib/jenkins /main/data/xylitol || echo Error xylitol &
+
+wait
+
+/usr/sbin/zfs snapshot main@`date '+%F_%T'`
+
+rm -f ${LOCKFILE}
+

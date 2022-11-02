@@ -1,0 +1,16 @@
+- include_role: name=cuda_repo
+
+- name: Install kernel-devel
+  yum: name=kernel-devel
+
+- name: Install CUDA
+  yum: 
+    enablerepo: cuda
+    name: cuda
+
+- name: Install nvidia kernel module custom parameters
+  copy: src=nvidia.conf dest=/etc/modprobe.d/
+
+- name: Enable nvidia-persistenced
+  service: name=nvidia-persistenced enabled=yes
+

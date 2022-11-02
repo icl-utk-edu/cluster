@@ -1,0 +1,11 @@
+- name: Install nginx web server
+  yum: 
+        name: ['nginx']
+
+- name: Enable nginx service
+  service: name=nginx state=started enabled=yes
+
+#- name: Config nginx
+#  copy: src=nginx.conf dest=/etc/nginx/
+#  notify: "Restart nginx"
+

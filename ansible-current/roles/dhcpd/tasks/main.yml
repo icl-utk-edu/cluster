@@ -1,0 +1,10 @@
+- name: Install dhcpd 
+  yum: name=dhcp
+
+- name: Configure dhcpd
+  copy: src=dhcpd-{{ inventory_hostname }}.conf dest=/etc/dhcp/dhcpd.conf
+  notify: "Restart dhcpd"
+
+- name: Enable dhcpd
+  service: name=dhcpd state=started enabled=yes
+
