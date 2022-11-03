@@ -1,6 +1,6 @@
 
-- hosts: xsdk.icl.utk.edu
+- hosts: rocky9
   remote_user: root
   roles:
-    - kernel
+    - all
 

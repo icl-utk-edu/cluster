@@ -4,9 +4,7 @@
     state: present
     name:
       - "@development"
-      - "@^compute-node-environment"
       - "@infiniband"
-      - "@performance"
       - "@debugging"
       - binutils-devel
       - hmaccalc
@@ -18,7 +16,7 @@
       - pcp-libs-devel
       - OpenIPMI
       - perl-DBD-SQLite
-      - glibc-static
+#      - glibc-static
       - screen
       - numactl-devel
       - java-11-openjdk
@@ -34,8 +32,8 @@
       - mercurial
       - numactl
       - tcl
-      - cpuid
-      - deltarpm
+#      - cpuid
+#      - deltarpm
       - zsh
       - hwloc
       - xauth

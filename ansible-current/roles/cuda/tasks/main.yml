@@ -3,10 +3,11 @@
 - name: Install kernel-devel
   yum: name=kernel-devel
 
+- name: Install CUDA drivers
+  shell: dnf -y module install nvidia-driver:latest-dkms
+
 - name: Install CUDA
-  yum: 
-    enablerepo: cuda
-    name: cuda
+  yum: name=cuda
 
 - name: Install nvidia kernel module custom parameters
   copy: src=nvidia.conf dest=/etc/modprobe.d/

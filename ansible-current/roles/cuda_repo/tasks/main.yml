@@ -1,5 +1,5 @@
 
 - name: Install yum repository for CUDA
-  copy: src=cuda.repo dest=/etc/yum.repos.d/cuda.repo
+  shell: dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/cuda-rhel9.repo
 
 

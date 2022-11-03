@@ -2,6 +2,9 @@
 - name: Uninstall old docker
   yum: name=docker-common state=absent
 
+- name: Uninstall podman
+  yum: name=podman-docker state=absent
+
 - name: Install Docker-ce yum repo
   copy: src=docker-ce.repo dest=/etc/yum.repos.d/
 

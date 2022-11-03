@@ -8,6 +8,9 @@
 - name: Remove mlocate package
   yum: name=mlocate state=absent
 
+- name: Install postfix
+  yum: name=postfix
+
 - name: Set the root mail alias
   lineinfile:
     dest: /etc/aliases

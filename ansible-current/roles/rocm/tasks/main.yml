@@ -12,15 +12,15 @@
 - name: Install ROCM yum repository
   copy: src=rocm.repo dest=/etc/yum.repos.d/
 
-- name: Install scl repo
-  yum: name=centos-release-scl
+#- name: Install scl repo
+#  yum: name=centos-release-scl
 
-- name: Install devtoolset-7
-  yum: name=devtoolset-7
+#- name: Install devtoolset-7
+#  yum: name=devtoolset-7
 
 - name: Install ROCM packages
   yum:
-    enablerepo: 'amdgpu,rocm'
+    enablerepo: 'amdgpu,rocm,crb'
     name: ['amdgpu-dkms', 'rocm-hip-sdk', 'rocm-dkms', 'hip-nvcc', 'rocprim', 'rocm-ml-sdk', 'rocm-openmp-sdk', 'rocm-opencl-sdk', 'rocm-developer-tools']
 
 # removed aomp-amdgpu

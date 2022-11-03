@@ -1,12 +1,12 @@
 [amdgpu]
 name=amdgpu
-baseurl=https://repo.radeon.com/amdgpu/latest/rhel/7.9/main/x86_64
+baseurl=https://repo.radeon.com/amdgpu/latest/rhel/9.1/main/x86_64/
 enabled=0
 gpgcheck=0
 
 [rocm]
 name=rocm
-baseurl=http://repo.radeon.com/rocm/yum/5.2/main
+baseurl=https://repo.radeon.com/rocm/rhel9/5.3/main
 enabled=0
 gpgcheck=0
 
