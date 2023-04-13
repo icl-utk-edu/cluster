@@ -1,5 +1,5 @@
 - name: Restart network
-  service: name=network state=restarted
+  service: name=NetworkManager state=restarted
 
 - name: Restart rsyslog
   service: name=rsyslog state=restarted

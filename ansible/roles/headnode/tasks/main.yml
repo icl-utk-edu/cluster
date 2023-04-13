@@ -6,7 +6,7 @@
   firewalld: zone=public service=nfs state=disabled permanent=true immediate=true
 
 - name: Configure private network
-  copy: src=ifcfg-em1 dest=/etc/sysconfig/network-scripts/ifcfg-em1
+  copy: src=eno2.nmconnection dest=/etc/NetworkManager/system-connections/
   notify: "Restart network"
 
 - name: Create cluster firewall zone
@@ -14,8 +14,8 @@
   args:
     creates: /etc/firewalld/zones/cluster.xml
 
-#- name: Add private network interface to the cluster zone
-#  firewalld: zone=cluster interface=em1 state=enabled permanent=true immediate=true
+- name: Add private network interface to the cluster zone
+  firewalld: zone=cluster interface=eno2 state=enabled permanent=true immediate=true
 
 - name: Packages needed for headnode
   yum: name={{item}}
@@ -26,7 +26,6 @@
 
 - name: Configure dracut for creating pxe boot image
   copy: src=dracut.conf dest=/etc/dracut.conf
-
 
 - name: Perl modules
   yum: name=perl-{{item}}
