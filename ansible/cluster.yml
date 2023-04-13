@@ -1,5 +1,0 @@
-- hosts: sorbitol.icl.utk.edu
-  remote_user: root
-  roles:
-      - headnode2
-

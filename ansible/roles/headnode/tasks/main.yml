@@ -1,9 +1,4 @@
 
-#- include_role: name=webserver
-- include_role: name=dnsmasq
-- include_role: name=nfs-server
-- include_role: name=slurm
-
 - name: Enable SSH access
   firewalld: zone=public service=ssh state=enabled permanent=true immediate=true
 
@@ -49,7 +44,3 @@
   copy: src=chrony.conf dest=/etc/chrony.conf
   notify: "Restart chronyd"
 
-- include_tasks: nat.yml
-
-# Need to manage fstab
-# Need to create /scratch directory
