@@ -1,0 +1,24 @@
+
+- name: Uninstall podman
+  yum: name=podman-docker state=absent
+
+- name: Install Docker-ce yum repo
+  copy: src=docker-ce.repo dest=/etc/yum.repos.d/
+
+- name: Install Docker 
+  yum:
+    name: ['docker-ce', 'docker-ce-cli', 'containerd.io']
+
+      #- name: Create docker group
+      #  group: name=docker gid=1001 local=yes
+
+- name: Enable docker service
+  service: name=docker state=started enabled=yes
+
+- name : Cron to periodically clean up docker objects
+  cron:
+    name: "docker"
+    job: "docker system prune -f > /dev/null"
+    minute: 1
+    hour: "1"
+
