@@ -2,34 +2,9 @@
   yum: name=nfs-utils
 
 - name: Enable NFS service
-  service: name=nfs enabled=yes state=started
+  service: name=nfs-server enabled=yes state=started
 
 - name: Create the NFS exports file
-  copy: src=exports-{{ inventory_hostname }} dest=/etc/exports
+  copy: src=exports dest=/etc/exports
   notify: "Refresh NFS export"
-
-- name: Configure NFS
-  copy: src=sysconfig-nfs dest=/etc/sysconfig/nfs
-  notify: 
-    - "Restart NFS service"
-    - "Restart statd service"
-
-- name: Open firewall port for NFS
-  firewalld: service=nfs zone=internal permanent=true state=enabled immediate=yes
-
-- name: Open firewall port for RPCbind
-  firewalld: service=rpc-bind zone=internal permanent=true state=enabled immediate=yes
-
-- name: Open firewall port for mountd
-  firewalld: port=892/tcp zone=internal permanent=true state=enabled immediate=yes
-
-- name: Open NFS lockd port
-  firewalld: zone=internal port=32888/tcp permanent=true state=enabled immediate=yes
-
-- name: Open NFS statd port
-  firewalld: zone=internal port=32701/tcp permanent=true state=enabled immediate=yes
-
-- name: Configure lockd
-  copy: src=lockd.conf dest=/etc/modprobe.d/lockd.conf
-  notify: "Reconfigure lockd service"
 

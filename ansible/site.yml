@@ -1,10 +1,12 @@
 - hosts: sorbitol.icl.utk.edu
   remote_user: root
   roles:
+          - firewall
           #- webserver
           - dnsmasq
-          #- nfs-server
-          #- slurm
+          - nfs-server
+            #- slurm # maybe use docker instead
           - nat
+          - docker-ce
           - headnode
 

@@ -11,7 +11,7 @@
     recurse: true
 
 - name: Configure dnsmasq
-  copy: src=dnsmasq-{{ inventory_hostname }}.conf dest=/etc/dnsmasq.conf
+  copy: src=dnsmasq.conf dest=/etc/
   notify: "Restart dnsmasq"
 
 - name: Enable dnsmasq

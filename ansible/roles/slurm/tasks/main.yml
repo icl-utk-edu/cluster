@@ -1,5 +1,5 @@
-- name: Install yum repo for Slurm
-  copy: src=slurm.repo dest=/etc/yum.repos.d/slurm.repo
+- name: Install EPEL
+  yum: name=epel-release
 
 - name: Install Slurm
   yum: name={{item}}
@@ -11,7 +11,6 @@
         - slurm-perlapi
         - slurm-slurmctld
         - slurm-slurmd
-        - slurm-pmi-devel
 
 - name: Slurm dependencies
   yum: name={{item}}
@@ -65,7 +64,7 @@
           - /var/run/slurm
 
 - name: Configure slurm
-  copy: src=slurm-{{ inventory_hostname }}.conf dest=/etc/slurm/slurm.conf
+  copy: src=slurm.conf dest=/etc/slurm/slurm.conf
   notify: "Restart slurmctld"
 
 - name: Configure slurm cgroups

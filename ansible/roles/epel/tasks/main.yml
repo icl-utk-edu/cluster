@@ -1,9 +1,0 @@
-- name: Configure EPEL yum repository
-  copy: src=epel-{{ansible_distribution_major_version}}.repo dest=/etc/yum.repos.d/epel.repo
-  when: ansible_os_family == "RedHat"
-
-- name: GPG key 
-  copy: src=RPM-GPG-KEY-EPEL-{{ansible_distribution_major_version}} dest=/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL
-  when: ansible_os_family == "RedHat"
-
-

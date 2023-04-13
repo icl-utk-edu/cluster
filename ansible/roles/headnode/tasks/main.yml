@@ -23,6 +23,7 @@
           - rpcbind
           - net-tools
           - nmap
+          - tcpdump
 
 - name: Configure dracut for creating pxe boot image
   copy: src=dracut.conf dest=/etc/dracut.conf
@@ -31,7 +32,7 @@
   yum: name=perl-{{item}}
   with_items:
           - Data-Dumper
-          - HTML-Template
+          #- HTML-Template
           - XML-Parser
           - libwww-perl
 
