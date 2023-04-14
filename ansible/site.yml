@@ -7,6 +7,6 @@
           - nfs-server
             #- slurm # maybe use docker instead
           - nat
-          - docker-ce
+          - docker
           - headnode
 

@@ -10,7 +10,7 @@
   notify: "Restart network"
 
 - name: Create cluster firewall zone
-  shell: firewall-cmd --new-zone=cluster --permanent --set-target=ACCEPT && firewall-cmd --reload
+  shell: firewall-cmd --new-zone=cluster --permanent && firewall-cmd --zone=cluster --permanent --set-target=ACCEPT && firewall-cmd --reload
   args:
     creates: /etc/firewalld/zones/cluster.xml
 
@@ -24,6 +24,8 @@
           - net-tools
           - nmap
           - tcpdump
+          - ipmitool
+          - rsync
 
 - name: Configure dracut for creating pxe boot image
   copy: src=dracut.conf dest=/etc/dracut.conf
