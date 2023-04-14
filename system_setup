@@ -1,0 +1,25 @@
+#!/bin/bash -e
+
+# Should run as normal use with sudo access already configured
+
+if [ $USER = "root" ]; then
+   echo Do not run this as root
+   exit 1
+fi
+
+if selinuxenabled ; then
+   echo Reboot to disable SELinux and rerun this script
+   echo SELINUX=disabled | sudo tee /etc/selinux/config
+   exit 1
+fi
+
+sudo dnf -y update
+sudo dnf -y install ansible-core
+ansible-galaxy collection install ansible.posix
+
+sudo mkdir -p /root/.ssh
+cat /home/$USER/.ssh/*.pub > /tmp/authorized_keys
+sudo cp /tmp/authorized_keys /root/.ssh/
+
+echo System initial setup is complete.
+
