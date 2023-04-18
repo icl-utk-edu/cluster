@@ -1,6 +1,6 @@
 
-- name: Enable SSH access
-  firewalld: zone=public service=ssh state=enabled permanent=true immediate=true
+- name: Disable SSH access
+  firewalld: zone=public service=ssh state=disabled permanent=true immediate=true
 
 - name: Disable NFS access from public zone
   firewalld: zone=public service=nfs state=disabled permanent=true immediate=true
@@ -27,8 +27,9 @@
           - ipmitool
           - rsync
 
-- name: Configure dracut for creating pxe boot image
-  copy: src=dracut.conf dest=/etc/dracut.conf
+# Using docker for node image building instead
+#- name: Configure dracut for creating pxe boot image
+#  copy: src=dracut.conf dest=/etc/dracut.conf
 
 - name: Perl modules
   yum: name=perl-{{item}}
@@ -45,4 +46,7 @@
 - name: Configure chronyd
   copy: src=chrony.conf dest=/etc/chrony.conf
   notify: "Restart chronyd"
+
+- name: Set up headnode environment
+  copy: src=env.sh dest=/etc/profile.d/
 

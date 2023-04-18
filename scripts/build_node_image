@@ -1,0 +1,29 @@
+#!/bin/bash -e
+
+if [ $USER != "root" ]; then
+   echo Running as root
+   sudo $0 $@
+   exit
+fi
+
+
+NAME=$1
+DIR=/cluster/nodes/$NAME
+if [[ -z "$NAME" || ! -d $DIR ]]; then
+	echo "Please provide a valid node image name"
+	exit 1
+fi
+
+cd $DIR
+docker build -t temp .
+
+docker remove temp || true
+docker run -it --name temp temp uptime
+rm -rf rootfs || true
+mkdir rootfs
+cd rootfs
+docker export temp | sudo tar -x
+docker remove temp
+
+cat /root/.ssh/*.pub > root/.ssh/authorized_keys
+

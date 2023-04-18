@@ -21,5 +21,7 @@ sudo mkdir -p /root/.ssh
 cat /home/$USER/.ssh/*.pub > /tmp/authorized_keys
 sudo cp /tmp/authorized_keys /root/.ssh/
 
+sudo ssh-keygen -f /root/.ssh/id_rsa -N ''
+
 echo System initial setup is complete.
 
