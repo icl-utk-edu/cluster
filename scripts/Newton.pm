@@ -18,20 +18,19 @@ use Parallel;
 use File::Copy;
 
 our $adminEmail = 'Newton_HPC_help@utk.edu';
-my $basedir = "/cluster/scripts";
 my $ssh_cmd = "ssh -nqxC -o 'ConnectTimeout=2' -o 'BatchMode=yes'";
 my $db;
 
 sub basedir {
-  my ($dir) = $0 =~ /^(.+\/)[^\/]+$/;
-  return $dir;
+  $0 =~ /^(.+\/)scripts\/[^\/]+$/;
+  return $1;
   }
 
 sub db {
   return $db if defined $db;
   my $basedir = basedir();
   my $dbfile = $basedir . 'cluster.db';
-  copy("$basedir/db.init", $dbfile) unless -e $dbfile;
+  copy("$basedir/scripts/db.init", $dbfile) unless -e $dbfile;
   $db = DBI->connect("dbi:SQLite:dbname=$dbfile","","") || die $DBI::errstr;
   $db->do('PRAGMA foreign_keys = ON');
   $db->do('PRAGMA defer_foreign_keys = ON');
@@ -91,14 +90,18 @@ sub get_passwd {
   }
 
 sub nodes {
-  my $name = shift || '';
-  my $where = shift || 1;
-  my $type = shift || 'system';
+  my %opt = ( name=>undef, where=>undef, type=>'system', @_ );
   my $db = db();
-  my $sth = $db->prepare(
-    "SELECT * from addresses WHERE name LIKE ? AND type=? AND $where ORDER BY name",
-    );
-  $sth->execute("$name\%", $type);
+  my @where = ('type=?');
+  if($opt{name}){
+    push(@where, 'name LIKE ?');
+    $opt{name} .= '%';
+    }
+  push(@where, $opt{where}) if $opt{where};
+  my $where = join(' AND ', @where);
+  my $sth = $db->prepare("SELECT * from addresses WHERE $where ORDER BY name");
+  my @values = grep {defined $_} map {$opt{$_}} qw(type name where);
+  $sth->execute(@values);
   my @out;
   while(my $hash = $sth->fetchrow_hashref){
     $hash->{ip} = ipaddr($hash->{ip});
@@ -110,14 +113,14 @@ sub nodes {
   }
 
 sub runall {
-  my %opt = @_;
-  my ($func, $type) = (\&ssh, 'system');
+  my %opt = (type=>'system', @_);
+  my $func = \&ssh;
   if($opt{ipmi}){
     $func = \&ipmi;
-    $type = 'bmc';
+    $opt{type} = 'bmc';
     bmc_passwd();
   }
-  my $nodes = nodes($opt{nodes}, $opt{where}, $type);
+  my $nodes = nodes(%opt);
   my $jobs = Parallel->new();
   for(@$nodes){
     my $node = $opt{ipmi} ? $_->{'system'} : $_->{name};
@@ -434,7 +437,7 @@ sub ipaddr { # convert integer to ip address
   }
 
 sub macaddr { # convert integer to mac address
-  return join(':', map {uc sprintf('%02x',$_)} i2addr(5,shift || 0));
+  return join(':', map {lc sprintf('%02x',$_)} i2addr(5,shift || 0));
   }
 
 sub i2addr { # convert integer to decimal octet
@@ -511,6 +514,51 @@ sub add_address {
   unless(defined $system_exists){
     $db->do('INSERT INTO systems (name) VALUES (?)', undef, $name);
     $db->do('UPDATE addresses SET system=name WHERE name=?', undef, $name);
+    }
+  }
+
+sub sudo {
+  return if $ENV{USER} eq 'root';
+  system('sudo', '-i', $0, @ARGV);
+  exit;
+  }
+
+sub node_install {
+  node_install_dnsmasq();
+  node_install_pxe();
+  # Batch-queue
+  # Nagios
+  # Ganglia
+  }
+
+sub node_install_dnsmasq {
+  # Rebuild all files that depend on cluster node information
+  # DNS / DHCP
+  my @nodes = nodes(type=>'system');
+  my @bmc = nodes(type=>'bmc');
+  my ($fh, $tempfile) = tempfile();
+  for(@nodes, @bmc){
+    print $fh "dhcp-host=$_->{mac},$_->{name},$_->{ip}\n";
+    }
+  close $fh;
+  `sudo cp $tempfile /etc/dnsmasq.d/nodes.conf`;
+  `sudo systemctl restart dnsmasq`;
+}
+
+sub node_install_pxe {
+  my $basedir = basedir();
+  my @nodes = nodes(type=>'system');
+  for(@nodes){
+    my $role = $_->{role};
+    my $config = "$basedir/nodes/$role/pxe.config";
+    unless(defined($role) and -e $config){
+      $role = '';
+      warn "Warning: Node role '$role' not found!";
+      next;
+      }
+    $_->{mac} =~ s/:/\-/g;
+    my $link = "$basedir/nodes/pxelinux.cfg/01-" . $_->{mac};
+    `ln -sf $config $link`;
     }
   }
 

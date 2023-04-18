@@ -2,12 +2,10 @@
 
 use strict;
 use warnings;
-use lib "/newton/scripts";
 use Newton;
 use Getopt::Long;
 
-my $pxescript = "/newton/scripts/node_install/03-pxe";
-my $pxefiles = "/newton/files/pxelinux";
+my $basedir = Newton::basedir();
 
 my ($name, $nodeset);
 my $ok = GetOptions(
@@ -39,7 +37,7 @@ if(not defined $role){
   }
 
 die "Role $role is not available.\n"
-  unless -e "$pxefiles/$role/config";
+  unless -e "$basedir/nodes/$role/pxe.config";
 
 my $nodes = $db->selectcol_arrayref(
   "SELECT name FROM addresses WHERE $where",
@@ -49,5 +47,5 @@ die "Node specification does not exist.\n" unless @$nodes;
 $db->do('UPDATE addresses SET role=? WHERE name=?', undef, $role, $_) 
   for @$nodes;
 
-print `$pxescript`;
+Newton::node_install_pxe();
 

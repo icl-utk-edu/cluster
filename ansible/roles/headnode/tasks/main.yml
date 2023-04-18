@@ -27,6 +27,8 @@
           - tcpdump
           - ipmitool
           - rsync
+          - sqlite
+          - bind-utils
 
 # Using docker for node image building instead
 #- name: Configure dracut for creating pxe boot image

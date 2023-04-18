@@ -1,2 +1,2 @@
 nodes/*/rootfs
-scripts/cluster.db
+cluster.db

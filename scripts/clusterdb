@@ -1,12 +1,7 @@
 #!/bin/sh
 
-DIR=`dirname $0`
-DB=/opt/cluster/config/cluster.db
+DIR=$(dirname $(dirname $0))
+DB=$DIR/cluster.db
 
-if [ ! -e $DB ];then
-   echo Creating cluster database...
-   cp $DIR/db.init $DB
-fi
-
-sqlite3 -init $DIR/sqlite.init $DB "$@"
+sqlite3 -init $DIR/scripts/sqlite.init $DB "$@"
 
