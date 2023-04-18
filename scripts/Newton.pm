@@ -15,15 +15,24 @@ use Storable 'thaw';
 use Digest::MD5 'md5_base64';
 use URI::Escape;
 use Parallel;
+use File::Copy;
 
 our $adminEmail = 'Newton_HPC_help@utk.edu';
-my $basedir = "/newton/scripts";
+my $basedir = "/cluster/scripts";
 my $ssh_cmd = "ssh -nqxC -o 'ConnectTimeout=2' -o 'BatchMode=yes'";
 my $db;
 
+sub basedir {
+  my ($dir) = $0 =~ /^(.+\/)[^\/]+$/;
+  return $dir;
+  }
+
 sub db {
   return $db if defined $db;
-  $db = DBI->connect("dbi:SQLite:dbname=$basedir/cluster.db","","") || die $DBI::errstr;
+  my $basedir = basedir();
+  my $dbfile = $basedir . 'cluster.db';
+  copy("$basedir/db.init", $dbfile) unless -e $dbfile;
+  $db = DBI->connect("dbi:SQLite:dbname=$dbfile","","") || die $DBI::errstr;
   $db->do('PRAGMA foreign_keys = ON');
   $db->do('PRAGMA defer_foreign_keys = ON');
   $db->{AutoCommit} = 1;

@@ -1,3 +1,4 @@
+- include_role: epel
 
 - name: Disable SSH access
   firewalld: zone=public service=ssh state=disabled permanent=true immediate=true
@@ -35,9 +36,12 @@
   yum: name=perl-{{item}}
   with_items:
           - Data-Dumper
-          #- HTML-Template
+          - HTML-Template
           - XML-Parser
           - libwww-perl
+          - English
+          - LDAP
+          - DBD-SQLite
 
 - name: Configure rsyslog collector
   copy: src=rsyslog.d-collector dest=/etc/rsyslog.d/collector.conf
