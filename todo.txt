@@ -1,5 +1,4 @@
 - Create a class for "nodes" which has structure for querying clsuter config
-- Add standard ssh server key to node image
 - Fix DNS on nodes
 - Configure nodes to send rsyslog to headnode
-
+- use full dns names for headnode.cluster and nodes

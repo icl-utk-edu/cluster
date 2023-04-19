@@ -14,16 +14,21 @@ if [[ -z "$NAME" || ! -d $DIR ]]; then
 	exit 1
 fi
 
-cd $DIR
-docker build --progress=plain -t temp .
+
+TMPDIR=/tmp/$RANDOM
+mkdir -p $TMPDIR
+
+cd $TMPDIR
+headnode=`host headnode | awk '{print $4}'`
+docker build --progress=plain -t temp --build-arg HEADNODE=$headnode -f $DIR/Dockerfile .
+rmdir $TMPDIR
 
 docker remove temp || true
 docker run -it --name temp temp sleep 0
-rm -rf rootfs || true
-mkdir rootfs
+rm -rf $DIR/rootfs/* || true
+mkdir -p rootfs
 cd rootfs
 docker export temp | tar -x
-docker remove temp
 
 cp -a /etc/ssh/ssh_host_rsa* etc/ssh/
 chmod 600 etc/ssh/ssh_host*key

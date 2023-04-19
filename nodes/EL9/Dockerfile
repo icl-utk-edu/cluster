@@ -19,8 +19,11 @@ RUN mkdir /root/.ssh && chmod 700 /root/.ssh
 RUN dnf -y install OpenIPMI ipmitool && \
     systemctl enable ipmi
 
+RUN uptime
 RUN dnf -y install rsyslog && \
     echo '*.* @headnode' > /etc/rsyslog.d/remote.conf
 
-RUN dnf -y install systemd-resolved
-#RUN echo 'nameserver 10.0.0.1' > /etc/resolv.conf
+ARG HEADNODE
+RUN echo nameserver $HEADNODE > /etc/resolv.conf
+
+
