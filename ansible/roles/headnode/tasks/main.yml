@@ -29,6 +29,7 @@
           - rsync
           - sqlite
           - bind-utils
+          - vim
 
 # Using docker for node image building instead
 #- name: Configure dracut for creating pxe boot image
@@ -44,6 +45,8 @@
           - English
           - LDAP
           - DBD-SQLite
+          - Time-HiRes
+          - File-Copy
 
 - name: Configure rsyslog collector
   copy: src=rsyslog.d-collector dest=/etc/rsyslog.d/collector.conf

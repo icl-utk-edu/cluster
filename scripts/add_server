@@ -33,6 +33,9 @@ die "MAC is not correct" unless $mac =~ /^[\d\w\:]+$/;
 Newton::add_address($name, $ip, $mac, 'system', $system);
 $system ||= $name;
 
+my $role = ask('Server role');
+`change_role --name $name $role`;
+
 my $ip_bmc = ask('Management IP');
 my $mac_bmc = ask('Management MAC');
 

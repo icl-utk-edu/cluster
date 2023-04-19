@@ -15,15 +15,22 @@ if [[ -z "$NAME" || ! -d $DIR ]]; then
 fi
 
 cd $DIR
-docker build -t temp .
+docker build --progress=plain -t temp .
 
 docker remove temp || true
-docker run -it --name temp temp uptime
+docker run -it --name temp temp sleep 0
 rm -rf rootfs || true
 mkdir rootfs
 cd rootfs
-docker export temp | sudo tar -x
+docker export temp | tar -x
 docker remove temp
 
+cp -a /etc/ssh/ssh_host_rsa* etc/ssh/
+chmod 600 etc/ssh/ssh_host*key
 cat /root/.ssh/*.pub > root/.ssh/authorized_keys
+
+cd ..
+ln -sf rootfs/boot/vmlinuz* kernel
+ln -sf rootfs/boot/init*.img initrd
+
 

@@ -1,18 +1,26 @@
 FROM almalinux:9
 
 RUN dnf -y update
+# Install kernel and initrd
 RUN dnf -y install kernel kernel-core dracut-network rpcbind nfs-utils
-#RUN echo 'add_dracutmodules+=" nfs "' > /etc/dracut.conf.d/nfs.conf
-RUN dracut --force --add nfs --no-hostonly
+RUN dracut --force --add nfs --no-hostonly --kver `rpm -q kernel | sed 's/kernel-//'`
 RUN chmod 644 /boot/initramfs*.img
-RUN dnf -y install readonly-root
 RUN ls /lib/modules | xargs -Iggg cp /lib/modules/ggg/vmlinuz /boot/vmlinuz-ggg
 
-RUN dnf -y install openssh-server && \
-    systemctl enable sshd && \
-    /usr/libexec/openssh/sshd-keygen ecdsa
+RUN dnf -y install readonly-root && \
+    echo READONLY=yes >> /etc/sysconfig/readonly-root
 
+RUN dnf -y install openssh-server && \
+    systemctl enable sshd
+
+# Prepare for direct-to-root ssh access
 RUN mkdir /root/.ssh && chmod 700 /root/.ssh
 
 RUN dnf -y install OpenIPMI ipmitool && \
     systemctl enable ipmi
+
+RUN dnf -y install rsyslog && \
+    echo '*.* @headnode' > /etc/rsyslog.d/remote.conf
+
+RUN dnf -y install systemd-resolved
+#RUN echo 'nameserver 10.0.0.1' > /etc/resolv.conf

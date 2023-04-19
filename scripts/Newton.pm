@@ -124,7 +124,7 @@ sub runall {
   my $jobs = Parallel->new();
   for(@$nodes){
     my $node = $opt{ipmi} ? $_->{'system'} : $_->{name};
-    $jobs->run($node, $func, $opt{command}, $_->{name});
+    $jobs->run($node, $func, $opt{command}, $_->{ip});
   }
   return $jobs->finish();
 }

@@ -4,12 +4,6 @@
 - name: Install dnsmasq-utils
   yum: name=dnsmasq-utils
 
-- name: Create PXE boot directory
-  file: 
-    path: /cluster/pxe
-    state: directory
-    recurse: true
-
 - name: Configure dnsmasq
   copy: src=dnsmasq.conf dest=/etc/
   notify: "Restart dnsmasq"
