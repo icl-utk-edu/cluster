@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+set -x 
+
 if [ $USER != "root" ]; then
    echo Running as root
    sudo $0 $@
@@ -9,26 +11,25 @@ fi
 
 NAME=$1
 DIR=/cluster/nodes/$NAME
+ROOTFS=$DIR/rootfs
 if [[ -z "$NAME" || ! -d $DIR ]]; then
 	echo "Please provide a valid node image name"
 	exit 1
 fi
 
 
-TMPDIR=/tmp/$RANDOM
-mkdir -p $TMPDIR
-
-cd $TMPDIR
-headnode=`host headnode | awk '{print $4}'`
-docker build --progress=plain -t temp --build-arg HEADNODE=$headnode -f $DIR/Dockerfile .
-rmdir $TMPDIR
+cd $DIR/docker
+docker build --progress=plain -t temp .
 
 docker remove temp || true
 docker run -it --name temp temp sleep 0
-rm -rf $DIR/rootfs/* || true
-mkdir -p rootfs
-cd rootfs
+rm -rf $ROOTFS/* || true
+mkdir -p $ROOTFS
+cd $ROOTFS
 docker export temp | tar -x
+
+headnode=`host headnode | awk '{print $4}'`
+echo nameserver $headnode > etc/resolv.conf
 
 cp -a /etc/ssh/ssh_host_rsa* etc/ssh/
 chmod 600 etc/ssh/ssh_host*key
