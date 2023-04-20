@@ -1,6 +1,0 @@
-
-- hosts: orbitty.icl.utk.edu adrenochrome.icl.utk.edu
-  remote_user: root
-  roles:
-    - users
-

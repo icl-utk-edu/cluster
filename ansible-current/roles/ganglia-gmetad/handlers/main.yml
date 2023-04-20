@@ -1,2 +1,0 @@
-- name: Restart Ganglia gmetad
-  service: name=gmetad state=restarted

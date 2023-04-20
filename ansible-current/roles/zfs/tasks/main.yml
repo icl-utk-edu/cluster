@@ -1,6 +1,0 @@
-- name: Install ZFS repo
-  copy: src=zfs.repo dest=/etc/yum.repos.d/zfs.repo
-
-- name: Install ZFS
-  yum: name=zfs
-

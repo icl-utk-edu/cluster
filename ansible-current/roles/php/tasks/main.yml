@@ -1,9 +1,0 @@
-
-- name: Install PHP
-  yum:
-    name: ['php', 'php-mysqlnd']
-
-- name: Customize php.ini
-  copy: src=php.ini dest=/etc/
-  notify: "Restart php-fpm"
-

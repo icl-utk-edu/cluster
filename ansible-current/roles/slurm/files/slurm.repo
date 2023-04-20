@@ -1,5 +1,0 @@
-[slurm]
-name=slurm
-baseurl=https://admin.icl.utk.edu/yumrepos/slurm
-enabled=1
-gpgcheck=0

@@ -1,2 +1,0 @@
-- name: Update mail aliases
-  command: /usr/bin/newaliases

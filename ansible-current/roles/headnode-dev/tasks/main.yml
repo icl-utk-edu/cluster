@@ -1,9 +1,0 @@
-
-- include_role: name=dnsmasq
-
-- name: Packages needed for headnode
-  yum: name={{item}}
-  with_items:
-          - rpcbind
-
-

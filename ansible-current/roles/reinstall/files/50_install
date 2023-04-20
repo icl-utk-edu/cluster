@@ -1,7 +1,0 @@
-#!/bin/sh
-exec tail -n +3 $0
-menuentry "Install" {
-set root='hd0,msdos1'
-linux   /netinstall/vmlinuz inst.ks=http://admin.icl.utk.edu/ks/7.ks
-initrd  /netinstall/initrd.img
-}

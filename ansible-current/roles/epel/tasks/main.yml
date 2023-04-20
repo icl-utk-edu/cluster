@@ -1,5 +1,0 @@
-- name: Install EPEL yum repository
-  yum: name=epel-release
-
-
-

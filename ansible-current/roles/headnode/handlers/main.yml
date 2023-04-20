@@ -1,9 +1,0 @@
-- name: Restart network
-  service: name=network state=restarted
-
-- name: Restart rsyslog
-  service: name=rsyslog state=restarted
-
-- name: Restart chronyd
-  service: name=chronyd state=restarted
-

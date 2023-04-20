@@ -1,2 +1,0 @@
-- name: Restart Ganglia gmond
-  service: name=gmond state=restarted

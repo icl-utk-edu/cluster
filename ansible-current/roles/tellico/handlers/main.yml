@@ -1,2 +1,0 @@
- - name: Restart pmcd
-   service: name=pmcd state=restarted

@@ -1,5 +1,0 @@
-- name: Enable spack.sh
-  copy: src=spack.sh dest=/etc/profile.d/spack.sh
-- name: Enable spack.csh
-  copy: src=spack.csh dest=/etc/profile.d/spack.csh
-

@@ -1,6 +1,0 @@
-
-#- name: Config sshd
-#  copy: src=sshd_config.{{ ansible_os_family }}-{{ ansible_distribution_major_version }} dest=/etc/ssh/sshd_config
-#  notify: "Restart sshd"
-
-

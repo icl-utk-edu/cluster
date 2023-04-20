@@ -1,4 +1,0 @@
-#!/bin/sh
-
-rpm -qa --filesbypkg | awk '{print $2}' | grep $1
-

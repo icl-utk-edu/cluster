@@ -1,6 +1,0 @@
-#!/bin/sh
-
-grep -v ']' hosts | sort -u > hosts.ssh
-export WCOLL=hosts.ssh
-export PDSH_SSH_ARGS_APPEND="-o BatchMode=yes"
-pdsh -R ssh -l root "$@"

@@ -1,7 +1,0 @@
-[gdrcopy]
-name=gdrcopy
-baseurl=https://admin.icl.utk.edu/yumrepos/gdrcopy/$basearch
-enabled=1
-gpgcheck=0
-
-

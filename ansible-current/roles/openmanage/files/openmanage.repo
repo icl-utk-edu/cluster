@@ -1,5 +1,0 @@
-[openmanage]
-name=openmanage
-baseurl=https://admin.icl.utk.edu/yumrepos/openmanage
-enabled=1
-gpgcheck=0

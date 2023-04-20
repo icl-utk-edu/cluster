@@ -1,6 +1,0 @@
-- hosts: deimos.icl.utk.edu
-  remote_user: root
-  roles:
-    - ipa-client
-
-

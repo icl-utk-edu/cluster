@@ -1,5 +1,0 @@
-- include_role: name=firewall
-
-- name: Disallow SSH from public
-  firewalld: zone=public service=ssh state=disabled permanent=true immediate=true
-

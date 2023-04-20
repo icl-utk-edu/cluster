@@ -1,6 +1,0 @@
-
-- hosts: rocky9
-  remote_user: root
-  roles:
-    - all
-

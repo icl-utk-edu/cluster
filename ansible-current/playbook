@@ -1,6 +1,0 @@
-#!/bin/sh
-
-ansible-playbook $@
-
-rm *.retry > /dev/null 2>&1
-

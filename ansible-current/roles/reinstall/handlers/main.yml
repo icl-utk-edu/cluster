@@ -1,7 +1,0 @@
-- name: Update grub config
-  shell: grub2-mkconfig -o "$(readlink -e /etc/grub2.cfg)"
-
-- name: Update grub-efi config
-  shell: grub2-mkconfig -o "$(readlink -e /etc/grub2-efi.cfg)"
-
-
