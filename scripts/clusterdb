@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DIR=$(dirname $(dirname $0))
+DIR=$(cluster_basedir)
 DB=$DIR/cluster.db
 
 sqlite3 -init $DIR/scripts/sqlite.init $DB "$@"

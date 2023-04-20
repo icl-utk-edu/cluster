@@ -523,6 +523,14 @@ sub sudo {
   exit;
   }
 
+sub auto_sudo {
+   if($ENV{USER} ne 'root'){
+     warn "Changing to root user ...\n";
+     system('sudo', '-i', $0, @ARGV);
+     exit;
+   }
+}
+
 sub node_install {
   node_install_dnsmasq();
   node_install_pxe();
@@ -567,8 +575,8 @@ sub node_install_slurm {
    my @nodes = nodes(type=>'system');
    my ($fh, $tempfile) = tempfile();
    for(@nodes){
-      my $node = $_->{name};
-      print $fh "NodeName=$node CPUs=1 State=UNKNOWN\n";
+      my ($basename) = $_->{name} =~ /^([^\.]+)\./;
+      print $fh "NodeName=$basename CPUs=1 State=UNKNOWN\n";
    }
    close $fh;
   `sudo cp $tempfile /etc/slurm/nodes.conf`;

@@ -1,5 +1,9 @@
-- Create a class for "nodes" which has structure for querying clsuter config
-- use full dns names for headnode.cluster and nodes
+Slurm work
+  - Get nodes to accept uid of slurmctld user slurm(9)
+  - Need unified user ids
+
+- Create a class for "nodes" which has structure for querying cluster config
+- use FQDN for headnode.cluster and nodes
 - clock sync
 - use ansible to configure node image
    - use external docker context to get ansible config
