@@ -526,6 +526,7 @@ sub sudo {
 sub node_install {
   node_install_dnsmasq();
   node_install_pxe();
+  node_install_slurm();
   # Batch-queue
   # Nagios
   # Ganglia
@@ -561,6 +562,18 @@ sub node_install_pxe {
     `ln -sf $config $link`;
     }
   }
+
+sub node_install_slurm {
+   my @nodes = nodes(type=>'system');
+   my ($fh, $tempfile) = tempfile();
+   for(@nodes){
+      my $node = $_->{name};
+      print $fh "NodeName=$node CPUs=1 State=UNKNOWN\n";
+   }
+   close $fh;
+  `sudo cp $tempfile /etc/slurm/nodes.conf`;
+  `sudo systemctl restart slurmctld`;
+}
 
 1;
 

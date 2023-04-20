@@ -59,3 +59,11 @@
 - name: Set up headnode environment
   copy: src=env.sh dest=/etc/profile.d/
 
+- name: Set the hostname
+  copy: src=hostname dest=/etc/
+  notify: "Set hostname"
+
+- name: create resolver for headnode hostname
+  copy: src=hosts dest=/etc/
+
+

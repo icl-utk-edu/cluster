@@ -22,3 +22,12 @@ RUN dnf -y install OpenIPMI ipmitool && \
 RUN dnf -y install rsyslog && \
     echo '*.* @headnode' > /etc/rsyslog.d/remote.conf
 
+# Slurm
+RUN dnf -y install epel-release && \
+    dnf -y install slurm-slurmd munge
+RUN systemctl enable slurmd munge
+RUN useradd -m -g daemon slurm
+COPY --from=munge --chown=munge:munge munge.key /etc/munge/
+COPY --from=slurm slurm.conf /etc/slurm/
+COPY --from=slurm nodes.conf /etc/slurm/
+COPY --from=slurm partitions.conf /etc/slurm/

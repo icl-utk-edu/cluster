@@ -2,11 +2,10 @@
   remote_user: root
   roles:
           - firewall
-          #- webserver
+          - headnode
           - dnsmasq
           - nfs-server
-            #- slurm # maybe use docker instead
+          - slurm
           - nat
           - docker
-          - headnode
 

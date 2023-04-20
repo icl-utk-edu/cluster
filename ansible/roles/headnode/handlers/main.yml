@@ -7,3 +7,6 @@
 - name: Restart chronyd
   service: name=chronyd state=restarted
 
+- name: Set hostname
+  command: hostname `cat /etc/hostname`
+

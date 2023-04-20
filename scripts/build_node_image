@@ -4,13 +4,14 @@ set -x
 
 if [ $USER != "root" ]; then
    echo Running as root
-   sudo $0 $@
+   sudo -i $0 $@
    exit
 fi
 
 
 NAME=$1
-DIR=/cluster/nodes/$NAME
+BASEDIR=$(cluster_basedir)
+DIR=$BASEDIR/nodes/$NAME
 ROOTFS=$DIR/rootfs
 if [[ -z "$NAME" || ! -d $DIR ]]; then
 	echo "Please provide a valid node image name"
@@ -19,7 +20,10 @@ fi
 
 
 cd $DIR/docker
-docker build --progress=plain -t temp .
+docker build --progress=plain -t temp \
+	--build-context slurm=/etc/slurm/ \
+	--build-context munge=/etc/munge/ \
+	--build-context ansible=$BASEDIR/ansible .
 
 docker remove temp || true
 docker run -it --name temp temp sleep 0
