@@ -52,10 +52,9 @@ COPY chrony.conf /etc/
 RUN dnf -y install vim screen man
 
 RUN dnf -y install nftables
-#RUN dnf -y install firewalld
-#RUN firewall-cmd --zone internal --add-source 10.0.0.0/24 --permanent
-#RUN firewall-cmd --zone internal --set-target ACCEPT --permanent
-#RUN firewall-cmd --set-default-zone public --permanent
+RUN systemctl enable nftables
+COPY nftables.conf /etc/sysconfig/
+
 RUN dnf clean all
 
 
