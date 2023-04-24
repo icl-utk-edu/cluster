@@ -1,2 +1,3 @@
 nodes/*/rootfs
 cluster.db
+nodes/common/ldapuser_password.txt

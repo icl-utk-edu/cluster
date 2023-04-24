@@ -1,3 +1,7 @@
+LDAP
+  - SSH key auth
+  - sudo support (with password?)
+
 Slurm work
   - Get nodes to accept uid of slurmctld user slurm(9)
   - Need unified user ids
@@ -7,3 +11,4 @@ Slurm work
 - clock sync
 - use ansible to configure node image
    - use external docker context to get ansible config
+- put node rsyslogs into other location
