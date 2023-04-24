@@ -4,7 +4,6 @@ LDAP
 
 Slurm work
   - Get nodes to accept uid of slurmctld user slurm(9)
-  - Need unified user ids
 
 - Create a class for "nodes" which has structure for querying cluster config
 - use FQDN for headnode.cluster and nodes

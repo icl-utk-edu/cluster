@@ -24,7 +24,7 @@ docker build --progress=plain -t temp \
 	--build-context slurm=/etc/slurm/ \
 	--build-context munge=/etc/munge/ \
 	--build-context ansible=$BASEDIR/ansible \
-	--build-context common=$BASEDIR/common .
+	--build-context common=$BASEDIR/nodes/common .
 
 docker remove temp || true
 docker run -it --name temp temp sleep 0

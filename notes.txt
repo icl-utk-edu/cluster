@@ -1,4 +1,3 @@
-Need DNS to point to local dnsmasq daemon
 
 Provisioning Strategy:
   - Boot node into default OS image

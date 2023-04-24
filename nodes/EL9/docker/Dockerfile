@@ -15,6 +15,7 @@ RUN dnf -y install openssh-server && \
 
 # Prepare for direct-to-root ssh access
 RUN mkdir /root/.ssh && chmod 700 /root/.ssh
+COPY sshd_custom.conf /etc/ssh/sshd_config.d/
 
 RUN dnf -y install OpenIPMI ipmitool && \
     systemctl enable ipmi
@@ -48,7 +49,13 @@ COPY --from=common ipa-ca.crt /etc/openldap/certs/
 RUN dnf -y install chrony
 COPY chrony.conf /etc/
 
-RUN dnf -y install vim screen man    
+RUN dnf -y install vim screen man
+
+RUN dnf -y install nftables
+#RUN dnf -y install firewalld
+#RUN firewall-cmd --zone internal --add-source 10.0.0.0/24 --permanent
+#RUN firewall-cmd --zone internal --set-target ACCEPT --permanent
+#RUN firewall-cmd --set-default-zone public --permanent
 RUN dnf clean all
 
 
