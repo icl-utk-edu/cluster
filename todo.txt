@@ -1,5 +1,4 @@
 LDAP
-  - SSH key auth
   - sudo support (with password?)
 
 Slurm work
