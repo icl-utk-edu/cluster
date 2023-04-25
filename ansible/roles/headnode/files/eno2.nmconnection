@@ -11,7 +11,7 @@ zone=cluster
 [ipv4]
 address1=10.0.0.1/24
 dns=10.0.0.1;
-dns-priority=1
+dns-priority=-1
 ignore-auto-dns=true
 ignore-auto-routes=true
 may-fail=false

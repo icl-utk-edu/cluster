@@ -1,11 +1,6 @@
 FROM rockylinux:9
 
 RUN dnf -y update
-# Install kernel and initrd
-RUN dnf -y install kernel dracut-network rpcbind nfs-utils
-RUN dracut --force --add nfs --no-hostonly --kver `rpm -q kernel | sed 's/kernel-//'`
-RUN chmod 644 /boot/initramfs*.img
-RUN ls /lib/modules | xargs -Iggg cp /lib/modules/ggg/vmlinuz /boot/vmlinuz-ggg
 
 RUN dnf -y install readonly-root && \
     echo READONLY=yes >> /etc/sysconfig/readonly-root
@@ -54,6 +49,29 @@ RUN dnf -y install vim screen man
 RUN dnf -y install nftables
 RUN systemctl enable nftables
 COPY nftables.conf /etc/sysconfig/
+
+RUN dnf -y group install development infiniband debugging
+RUN dnf -y install bind-utils binutils-devel emacs-nox git hmaccalc hwloc ipmitool java-11-openjdk mercurial ncurses-devel numactl numactl-devel OpenIPMI pcp-libs-devel perl-DBD-SQLite psmisc readline-devel rsync screen tcl tigervnc tmux vim vim-X11 xauth zlib-devel zsh
+
+COPY cuda.repo /etc/yum.repos.d/
+RUN dnf -y install cuda-11-8 kmod-nvidia-latest-dkms
+RUN systemctl enable nvidia-persistenced
+RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
+
+COPY rocm.repo /etc/yum.repos.d/
+RUN dnf -y --enablerepo=crb install perl-File-BaseDir perl-URI-Encode
+RUN dnf -y install amdgpu-dkms rocm-hip-sdk rocm-dkms hip-nvcc rocprim rocm-ml-sdk rocm-openmp-sdk rocm-opencl-sdk rocm-developer-tools rocmtools-dev
+
+# Install kernel
+RUN dnf -y install kernel kernel-devel dracut-network rpcbind nfs-utils
+# Build kernel modules
+RUN dkms autoinstall && dkms status
+# Build initrd
+RUN dracut --force --add nfs --no-hostonly --kver `rpm -q kernel | sed 's/kernel-//'`
+RUN chmod 644 /boot/initramfs*.img
+RUN ls /lib/modules | xargs -Iggg cp /lib/modules/ggg/vmlinuz /boot/vmlinuz-ggg
+
+COPY --from=common motd /etc/
 
 RUN dnf clean all
 

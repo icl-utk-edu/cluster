@@ -1,12 +1,26 @@
 LDAP
   - sudo support (with password?)
 
+Mail sending from headnode
+
 Slurm work
   - Get nodes to accept uid of slurmctld user slurm(9)
 
 - Create a class for "nodes" which has structure for querying cluster config
 - use FQDN for headnode.cluster and nodes
-- clock sync
 - use ansible to configure node image
    - use external docker context to get ansible config
 - put node rsyslogs into other location
+
+
+From old ansible node config
+  - inventory script
+  - custom commands (locate, module_variants)
+  - remove mlocate
+  - cluster-aware fail2ban
+  - nagios monitoring
+  - perf_mods (papi)
+  - enable modules
+  - mount /tmp/ and tmpfs
+  - configure swap on local drive
+

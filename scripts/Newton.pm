@@ -575,8 +575,8 @@ sub node_install_slurm {
    my @nodes = nodes(type=>'system');
    my ($fh, $tempfile) = tempfile();
    for(@nodes){
-      my ($basename) = $_->{name} =~ /^([^\.]+)\./;
-      print $fh "NodeName=$basename CPUs=1 State=UNKNOWN\n";
+      #my ($basename) = $_->{name} =~ /^([^\.]+)\./;
+      print $fh "NodeName=$_->{name} CPUs=1 State=UNKNOWN\n";
    }
    close $fh;
   `sudo cp $tempfile /etc/slurm/nodes.conf`;
