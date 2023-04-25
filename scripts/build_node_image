@@ -34,7 +34,8 @@ cd $ROOTFS
 docker export temp | tar -x
 
 headnode=`host headnode | awk '{print $4}'`
-echo nameserver $headnode > etc/resolv.conf
+echo search cluster > etc/resolv.conf
+echo nameserver $headnode >> etc/resolv.conf
 
 cp -a /etc/ssh/ssh_host_rsa* etc/ssh/
 chmod 600 etc/ssh/ssh_host*key
