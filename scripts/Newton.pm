@@ -23,6 +23,7 @@ my $db;
 
 sub basedir {
   $0 =~ /^(.+\/)scripts\/[^\/]+$/;
+  die unless defined $1;
   return $1;
   }
 

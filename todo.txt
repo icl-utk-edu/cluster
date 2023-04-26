@@ -11,7 +11,7 @@ Slurm work
 - use ansible to configure node image
    - use external docker context to get ansible config
 - put node rsyslogs into other location
-
+- determine why ssh_known_hosts doesn't work
 
 From old ansible node config
   - inventory script

@@ -15,7 +15,7 @@ my %opt;
 my $ok = GetOptions(
 	\%opt,
 	'oneline|l',
-	'nodes|n=s',
+	'name|n=s',
         'timeout=n',
         'where|w=s',
         'ipmi|i',
@@ -55,15 +55,15 @@ This program runs a given command on every node in the cluster.
 Usage:  runall [option] <command>
 
 Options include:
-	-l, --oneline  - Print the output on the same line as the node name
-	-p,--parallel=i  - Number of machine to parallelize over
-	-n, --nodes=s    - String or regex that describes the subset of node 
-                         names to run on
-        -w, --where=s    - Select all nodes matching the given SQL string
-        --timeout=i - Timeout for the command
+	-l, --oneline   - Print the output on the same line as the node name
+	-p,--parallel=i - Number of machine to parallelize over
+	-n, --name=s    - String or regex that describes the subset of node 
+                          names to run on
+        -w, --where=s  - Select all nodes matching the given SQL string
+        --timeout=i    - Timeout for the command
         -i,--ipmi      - Run as an IPMI command on the management interface
         --password     - The IPMI password to use
-	-h, --help         - Show this message
+	-h, --help     - Show this message
 End
 ;
         }
