@@ -1,10 +1,19 @@
 LDAP
   - sudo support (with password?)
 
+Undo the ssh config that ipa adds to /etc/ssh/ssh_config.d/04-ipa.conf
+
 Mail sending from headnode
 
 Slurm work
-  - Get nodes to accept uid of slurmctld user slurm(9)
+  - Insert node into nodes.conf before starting up slurmd
+
+Need startup service for node configuration
+  - Insert node into slurm config
+  - start slurmd
+  - start homedir nfs if main login server
+
+What is minimum packages needed for cuda drivers and rocm amdgpu?
 
 - Create a class for "nodes" which has structure for querying cluster config
 - use FQDN for headnode.cluster and nodes

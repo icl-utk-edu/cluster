@@ -160,6 +160,7 @@ sub ssh {
     eval {
       local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
       alarm $timeout;
+      #print qq/ssh -nqxC -o 'ConnectTimeout=$timeout' -o 'BatchMode=yes' $node "$cmd" >& $outfile\n/;
       my @return = system(qq/ssh -nqxC -o 'ConnectTimeout=$timeout' -o 'BatchMode=yes' $node "$cmd" >& $outfile/);
       alarm 0;
       unless($file eq '-'){

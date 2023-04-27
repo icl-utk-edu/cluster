@@ -21,7 +21,7 @@ sudo mkdir -p /root/.ssh
 cat /home/$USER/.ssh/*.pub > /tmp/authorized_keys
 sudo cp /tmp/authorized_keys /root/.ssh/
 
-sudo ssh-keyscan -t rsa localhost | sed 's/localhost/*.cluster/' > /etc/ssh/ssh_known_hosts
+sudo ssh-keyscan -t rsa localhost | sed 's/localhost/*.cluster,10.0.0.*/' > /etc/ssh/ssh_known_hosts
 sudo ssh-keygen -f /root/.ssh/id_rsa -N ''
 
 echo System initial setup is complete.
