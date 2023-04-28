@@ -520,18 +520,12 @@ sub add_address {
   }
 
 sub sudo {
+  my @args = @_ ? @_ : @ARGV;
   return if $ENV{USER} eq 'root';
-  system('sudo', '-i', $0, @ARGV);
+  warn "Changing to root user ...\n";
+  system('sudo', '-i', $0, @args);
   exit;
   }
-
-sub auto_sudo {
-   if($ENV{USER} ne 'root'){
-     warn "Changing to root user ...\n";
-     system('sudo', '-i', $0, @ARGV);
-     exit;
-   }
-}
 
 sub node_install {
   node_install_dnsmasq();

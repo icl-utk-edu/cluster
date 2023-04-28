@@ -2,7 +2,7 @@ FROM rockylinux:9
 
 RUN dnf -y update
 
-RUN dnf -y install readonly-root
+RUN dnf -y install readonly-root e2fsprogs
 COPY readonly-root /etc/sysconfig/
 
 RUN dnf -y install openssh-server && \
@@ -31,7 +31,7 @@ COPY --from=slurm partitions.conf /etc/slurm/
 # LDAP for user accounts and authentication
 RUN dnf -y install openldap-clients sssd sssd-ldap authselect && \
     systemctl enable sssd
-RUN authselect select sssd --force
+RUN authselect select sssd --with-mkhomedir --force
 COPY ldap.conf /etc/openldap/
 COPY --chmod=0600 sssd.conf /etc/sssd/
 COPY --from=common ldapuser_password.txt /tmp/
@@ -55,13 +55,17 @@ COPY cuda.repo /etc/yum.repos.d/
 RUN dnf -y install kmod-nvidia-latest-dkms nvidia-driver-cuda
 #nvidia-driver-cuda-libs
 #RUN dnf -y install cuda-11-8 kmod-nvidia-latest-dkms
-#RUN systemctl enable nvidia-persistenced
-#RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
+RUN systemctl enable nvidia-persistenced
+RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
 
 COPY rocm.repo /etc/yum.repos.d/
 RUN dnf -y install rocm-smi-lib amdgpu-dkms
 #RUN dnf -y --enablerepo=crb install perl-File-BaseDir perl-URI-Encode
 #RUN dnf -y install amdgpu-dkms rocm-hip-sdk rocm-dkms hip-nvcc rocprim rocm-ml-sdk rocm-openmp-sdk rocm-opencl-sdk rocm-developer-tools rocmtools-dev
+
+
+COPY rc.d /etc/rc.d
+RUN systemctl enable rc-local
 
 # Install kernel
 RUN dnf -y install kernel kernel-devel dracut-network rpcbind nfs-utils dkms

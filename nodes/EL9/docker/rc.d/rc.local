@@ -1,0 +1,8 @@
+#!/bin/bash
+
+for script in $(find /etc/rc.d/rc3.d -type f);do
+  $script
+done
+
+touch /var/lock/subsys/local
+

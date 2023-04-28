@@ -1,0 +1,15 @@
+#!/bin/bash -e
+
+# This either mounts a local drive as /home and exports it via NFS or mounts a remote NFS as /home
+
+DEV=`blkid -t TYPE=ext4 -o device`
+if [ $DEV ]; then
+   # We are the NFS server, mount and export this $DEV
+   mount $DEV /home
+   echo "/home 10.0.0.0/24(rw)" > /var/lib/stateless/writable/etc/exports
+   mount -o bind /var/lib/stateless/writable/etc/exports /etc/exports
+   systemctl start nfs-server
+else
+   # Mount the remote NFS as /home
+   mount test1.cluster:/home /home
+fi
