@@ -5,8 +5,8 @@
 DEV=`blkid -t LABEL=home -o device || true`
 if [ $DEV ]; then
    # We are the NFS server, mount and export this $DEV
-   zpool import home
-   echo "/home 10.0.0.0/24(rw)" > /var/lib/stateless/writable/etc/exports
+   zpool import -a
+   echo "/home 10.0.0.0/24(rw)" >> /var/lib/stateless/writable/etc/exports
    mount -o bind /var/lib/stateless/writable/etc/exports /etc/exports
    systemctl start nfs-server
 else
