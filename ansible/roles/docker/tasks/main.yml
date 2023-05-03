@@ -9,8 +9,8 @@
   yum:
     name: ['docker-ce', 'docker-ce-cli', 'containerd.io']
 
-      #- name: Create docker group
-      #  group: name=docker gid=1001 local=yes
+- name: Remove docker group (is provided by ipa/ldap)
+  group: name=docker local=yes state=absent
 
 - name: Enable docker service
   service: name=docker state=started enabled=yes

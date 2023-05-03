@@ -2,26 +2,21 @@ LDAP
   - sudo support (with password?)
 
 Need to add DNS alias support (e.g. for homedir -> test1.cluster)
-Undo the ssh config that ipa adds to /etc/ssh/ssh_config.d/04-ipa.conf
-ZFS on nodes for home directories
 Mail sending from headnode
 
 Slurm work
   - Insert node into nodes.conf before starting up slurmd
 
-Need startup service for node configuration
+Startup service for node configuration
   - Insert node into slurm config
-  - start slurmd
-  - start homedir nfs if main login server
+  - Start slurmd
 
 What is minimum packages needed for cuda drivers and rocm amdgpu?
 
 - Create a class for "nodes" which has structure for querying cluster config
-- use FQDN for headnode.cluster and nodes
 - use ansible to configure node image
    - use external docker context to get ansible config
 - put node rsyslogs into other location
-- determine why ssh_known_hosts doesn't work
 
 From old ansible node config
   - inventory script
@@ -33,4 +28,6 @@ From old ansible node config
   - enable modules
   - mount /tmp/ and tmpfs
   - configure swap on local drive
+
+Nodes powered off after "runall -r shutdown -r now" ??
 

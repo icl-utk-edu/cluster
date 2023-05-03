@@ -31,7 +31,9 @@ COPY --from=slurm partitions.conf /etc/slurm/
 # LDAP for user accounts and authentication
 RUN dnf -y install openldap-clients sssd sssd-ldap authselect && \
     systemctl enable sssd
-RUN authselect select sssd --with-mkhomedir --force
+RUN authselect select sssd with-mkhomedir --force
+RUN dnf -y install oddjob-mkhomedir
+RUN systemctl enable oddjobd
 COPY ldap.conf /etc/openldap/
 COPY --chmod=0600 sssd.conf /etc/sssd/
 COPY --from=common ldapuser_password.txt /tmp/
@@ -42,14 +44,13 @@ COPY --from=common ipa-ca.crt /etc/openldap/certs/
 RUN dnf -y install chrony
 COPY chrony.conf /etc/
 
-RUN dnf -y install vim screen man
-
 RUN dnf -y install nftables
 RUN systemctl enable nftables
 COPY nftables.conf /etc/sysconfig/
 
-#RUN dnf -y group install development infiniband debugging
-#RUN dnf -y install bind-utils binutils-devel emacs-nox git hmaccalc hwloc ipmitool java-11-openjdk mercurial ncurses-devel numactl numactl-devel OpenIPMI pcp-libs-devel perl-DBD-SQLite psmisc readline-devel rsync screen tcl tigervnc tmux vim vim-X11 xauth zlib-devel zsh
+RUN dnf -y group install development debugging
+#RUN dnf -y group install infiniband
+RUN dnf -y install zsh vim tmux screen man emacs-nox xauth rsync java-11-openjdk sudo
 
 COPY cuda.repo /etc/yum.repos.d/
 RUN dnf -y install kmod-nvidia-latest-dkms nvidia-driver-cuda
@@ -63,6 +64,8 @@ RUN dnf -y install rocm-smi-lib amdgpu-dkms
 #RUN dnf -y --enablerepo=crb install perl-File-BaseDir perl-URI-Encode
 #RUN dnf -y install amdgpu-dkms rocm-hip-sdk rocm-dkms hip-nvcc rocprim rocm-ml-sdk rocm-openmp-sdk rocm-opencl-sdk rocm-developer-tools rocmtools-dev
 
+RUN dnf -y install https://zfsonlinux.org/epel/zfs-release-2-2$(rpm --eval "%{dist}").noarch.rpm
+RUN dnf -y install zfs
 
 COPY rc.d /etc/rc.d
 RUN systemctl enable rc-local
