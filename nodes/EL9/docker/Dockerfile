@@ -67,7 +67,7 @@ RUN dnf -y install rocm-smi-lib amdgpu-dkms
 RUN dnf -y install https://zfsonlinux.org/epel/zfs-release-2-2$(rpm --eval "%{dist}").noarch.rpm
 RUN dnf -y install zfs
 
-COPY rc.d /etc/rc.d
+COPY rc.local /etc/rc.d/rc.local
 RUN systemctl enable rc-local
 
 # Install kernel

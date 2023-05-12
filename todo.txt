@@ -1,3 +1,7 @@
+Test changes to rc.local
+   - Mounting of swap and home from zfs and non-zfs mounts
+
+
 LDAP
   - sudo support (with password?)
 

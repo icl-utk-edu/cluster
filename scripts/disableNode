@@ -58,25 +58,4 @@ if(defined $message and $message =~ /\S+/){
   print `logbook $system '$message'`;
   }
 
-update_disabled_rqs();
-
-sub update_disabled_rqs {
-  my $nodes = $db->selectcol_arrayref('SELECT name FROM systems WHERE disabled=1');
-  my $rqs = 'DisabledNodes';
-  my ($fh, $file) = tempfile();
-  flock($fh, 2) or die $!;
-  print {$fh} qq/{
-   name         $rqs
-   description  Do not modify this directly, managed by "disableNode"
-   enabled      TRUE
-/;
-  for(@$nodes){
-    print {$fh} "limit hosts $_ to slots=0\n";
-    }
-  print {$fh} '}';
-  close $fh;
-
-  my $cmd = `qconf -srqs '$rqs'`?'M':'A';
-  print `qconf -${cmd}rqs '$file' '$rqs'`;
-  }
-
+print `sudo scontrol update nodename=$system state=resume`;
