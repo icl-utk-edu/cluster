@@ -1,37 +1,22 @@
-Test changes to rc.local
-   - Mounting of swap and home from zfs and non-zfs mounts
+- hostname is set wrong 50% on login nodes
 
-
-LDAP
-  - sudo support (with password?)
-
-Need to add DNS alias support (e.g. for homedir -> test1.cluster)
-Mail sending from headnode
-
-Slurm work
-  - Insert node into nodes.conf before starting up slurmd
-
-Startup service for node configuration
-  - Insert node into slurm config
-  - Start slurmd
-
-What is minimum packages needed for cuda drivers and rocm amdgpu?
-
-- Create a class for "nodes" which has structure for querying cluster config
-- use ansible to configure node image
-   - use external docker context to get ansible config
-- put node rsyslogs into other location
-
-From old ansible node config
-  - inventory script
-  - custom commands (locate, module_variants)
-  - remove mlocate
-  - cluster-aware fail2ban
-  - nagios monitoring
-  - perf_mods (papi)
-  - enable modules
-  - mount /tmp/ and tmpfs
-  - configure swap on local drive
-
-Nodes powered off after "runall -r shutdown -r now" ??
+- Distribute slurm nodes.conf (TFTP, HTTP, NFS?)
+- Mail sending from headnode
+- nagios monitoring
+- Disable/Enable nodes based on nagios checks
+- Store node rsyslogs into other location
+- cluster-aware fail2ban
+- inventory script (web and command-line)
+- Modules: Host user software on homedir node
+- Modules: Load from profile.d
+- Modules: Automatic loading of rocm and cuda toolkits (modules)
+- ZFS homedir quotas
+- ZFS snapshots
+- sudo support (with password?)
+- Need DNS alias support (e.g. for homedir -> test1.cluster)
+- Management: Create a class for "nodes" which has structure for querying cluster config
+- Management: Use ansible to configure node image
+   - external docker context to get ansible config
+- Store node rsyslogs into other location
+- Nodes: custom commands (locate, module_variants)
 

@@ -4,16 +4,17 @@
 zpool import -a || true
 
 
-# Either mount a local drive as /home and exports it via NFS or mount a remote NFS as /home
-DEV=`blkid -t LABEL=home -o device || true`
-if [ $DEV ]; then
-   # We are the NFS server, mount and export this $DEV
-   echo "/home 10.0.0.0/24(rw)" >> /var/lib/stateless/writable/etc/exports
+# If hosting a zfs filesystem mounted on /home, exports it via NFS
+# Otherwise mount a remote NFS as /home
+if [[ `zfs list -H` ]]; then
+   for mntpnt in `zfs list -o mountpoint -H`; do
+      echo "$mntpnt 10.0.0.0/24(rw)" >> /var/lib/stateless/writable/etc/exports
+   done
    mount -o bind /var/lib/stateless/writable/etc/exports /etc/exports
    systemctl start nfs-server
 else
-   # Mount the remote NFS as /home
    mount test1.cluster:/home /home
+   mount test1.cluster:/apps /apps
 fi
 
 
@@ -23,6 +24,20 @@ if [ $SWAPDEV ] ; then
    swapon $SWAPDEV
 fi
 
+
+# Resume processing of slurm jobs
+scontrol update nodename=`hostname -f` state=resume
+
+
+# Relax hardware access limits for PAPI
+echo -1 > /proc/sys/kernel/perf_event_paranoid
+if [ -e /proc/sys/kernel/numa_balancing ]; then
+  echo 0 > /proc/sys/kernel/numa_balancing
+fi
+
+
+# Disable NV daemon is no NV hardware
+nvidia-smi || systemctl stop nvidia-persistenced
 
 # Do everything else
 for script in $(find /etc/rc.d/rc3.d -type f | sort);do

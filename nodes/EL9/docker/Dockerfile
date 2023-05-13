@@ -66,6 +66,7 @@ RUN dnf -y install rocm-smi-lib amdgpu-dkms
 
 RUN dnf -y install https://zfsonlinux.org/epel/zfs-release-2-2$(rpm --eval "%{dist}").noarch.rpm
 RUN dnf -y install zfs
+RUN mkdir /apps
 
 COPY rc.local /etc/rc.d/rc.local
 RUN systemctl enable rc-local
@@ -79,10 +80,16 @@ RUN dracut --force --add nfs --no-hostonly --kver `rpm -q kernel | sed 's/kernel
 RUN chmod 644 /boot/initramfs*.img
 RUN ls /lib/modules | xargs -Iggg cp /lib/modules/ggg/vmlinuz /boot/vmlinuz-ggg
 
-RUN systemctl enable NetworkManager && systemctl disable NetworkManager
+#RUN systemctl disable NetworkManager
+#RUN echo files /etc/hostname >> /etc/rwtab
 
 COPY --from=common motd /etc/
 
+RUN dnf -y install environment-modules
+COPY spack.* /etc/profile.d/
+#COPY spack.csh /etc/profile.d/
+
+RUN dnf -y install csh zsh sed
 RUN dnf clean all
 
 

@@ -43,5 +43,5 @@ cat /root/.ssh/*.pub > root/.ssh/authorized_keys
 cd ..
 ln -sf rootfs/boot/vmlinuz* kernel
 ln -sf rootfs/boot/init*.img initrd
-
+echo Success!
 
