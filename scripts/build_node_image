@@ -1,13 +1,12 @@
 #!/bin/bash -e
 
-set -x 
-
 if [ $USER != "root" ]; then
    echo Running as root
    sudo -i $0 $@
    exit
 fi
 
+set -x
 
 NAME=$1
 BASEDIR=$(cluster_basedir)
@@ -33,8 +32,7 @@ cd $ROOTFS
 docker export temp | tar -x
 
 headnode=`host headnode | awk '{print $4}'`
-echo search cluster > etc/resolv.conf
-echo nameserver $headnode >> etc/resolv.conf
+echo -e "search cluster\nnameserver $headnode" > etc/resolv.conf
 
 cp -a /etc/ssh/ssh_host_rsa* etc/ssh/
 chmod 600 etc/ssh/ssh_host*key

@@ -1,3 +1,4 @@
 nodes/*/rootfs
+nodes/pxelinux.cfg
 cluster.db
 nodes/common/ldapuser_password.txt

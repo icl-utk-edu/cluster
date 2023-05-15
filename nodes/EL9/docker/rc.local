@@ -39,7 +39,7 @@ fi
 
 
 # Resume processing of slurm jobs
-scontrol update nodename=`hostname -f` state=resume
+scontrol update nodename=`hostname -s` state=resume
 
 
 # Relax hardware access limits for PAPI
