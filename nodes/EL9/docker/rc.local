@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# If hostname is set improperly, reboot and try again
+HOSTNAME=`hostname -f`
+if [[ $HOSTNAME =~ "icl.utk.edu" ]]; then
+   shutdown -r now
+fi
+
+
+# Set the default route for login nodes to the external interface
+if [[ `ip route list default | wc -l` == 2 ]]; then
+   ip route del default
+fi
+
+
 # Try to load a ZFS filesystem
 zpool import -a || true
 

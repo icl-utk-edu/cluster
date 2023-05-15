@@ -68,9 +68,6 @@ RUN dnf -y install https://zfsonlinux.org/epel/zfs-release-2-2$(rpm --eval "%{di
 RUN dnf -y install zfs
 RUN mkdir /apps
 
-COPY rc.local /etc/rc.d/rc.local
-RUN systemctl enable rc-local
-
 # Install kernel
 RUN dnf -y install kernel kernel-devel dracut-network rpcbind nfs-utils dkms
 # Build kernel modules
@@ -82,12 +79,22 @@ RUN ls /lib/modules | xargs -Iggg cp /lib/modules/ggg/vmlinuz /boot/vmlinuz-ggg
 
 #RUN systemctl disable NetworkManager
 #RUN echo files /etc/hostname >> /etc/rwtab
+RUN rm /etc/NetworkManager/system-connections/*
 
 COPY --from=common motd /etc/
 
 RUN dnf -y install environment-modules
 COPY spack.* /etc/profile.d/
-#COPY spack.csh /etc/profile.d/
+
+COPY docker.repo /etc/yum.repos.d/
+RUN dnf -y install docker-ce && \
+    systemctl enable docker && \
+    mkdir /var/lib/docker /var/lib/containerd && \
+    echo empty /var/lib/containerd >> /etc/rwtab
+# Nodes that will run docker will have ZFS mounted at /var/lib/docker
+
+COPY rc.local /etc/rc.d/rc.local
+RUN systemctl enable rc-local
 
 RUN dnf -y install csh zsh sed
 RUN dnf clean all

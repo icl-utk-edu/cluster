@@ -1,4 +1,3 @@
-- hostname is set wrong 50% on login nodes
 
 - Distribute slurm nodes.conf (TFTP, HTTP, NFS?)
 - Mail sending from headnode
@@ -7,9 +6,8 @@
 - Store node rsyslogs into other location
 - cluster-aware fail2ban
 - inventory script (web and command-line)
-- Modules: Host user software on homedir node
-- Modules: Load from profile.d
-- Modules: Automatic loading of rocm and cuda toolkits (modules)
+- Modules: set default for rocm/hip, cuda, gcc, and openmpi
+- Modules: build with x86_64 arch
 - ZFS homedir quotas
 - ZFS snapshots
 - sudo support (with password?)
@@ -19,4 +17,5 @@
    - external docker context to get ansible config
 - Store node rsyslogs into other location
 - Nodes: custom commands (locate, module_variants)
-
+- Find better way to set login node hostname
+- runall should ignore command-line arguments after the command-name (with -r)
