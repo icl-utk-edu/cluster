@@ -21,12 +21,14 @@ RUN dnf -y install rsyslog && \
 # Slurm
 RUN dnf -y install epel-release && \
     dnf -y install slurm-slurmd munge
-RUN systemctl enable slurmd munge
+RUN systemctl enable munge
+# slurmd is not enabled because it will be started by rc.local
 RUN useradd --no-create-home --system -g daemon --uid 9 slurm
 COPY --from=munge --chown=munge:munge munge.key /etc/munge/
 COPY --from=slurm slurm.conf /etc/slurm/
 COPY --from=slurm nodes.conf /etc/slurm/
 COPY --from=slurm partitions.conf /etc/slurm/
+RUN echo files /etc/slurm/nodes.conf >> /etc/rwtab
 
 # LDAP for user accounts and authentication
 RUN dnf -y install openldap-clients sssd sssd-ldap authselect && \

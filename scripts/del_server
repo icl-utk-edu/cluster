@@ -6,7 +6,7 @@ use Newton;
 
 my ($system, $go) = @ARGV;
 
-Newton::auto_sudo();
+Newton::sudo();
 
 my $db = Newton::db();
 

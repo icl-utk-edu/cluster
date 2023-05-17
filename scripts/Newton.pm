@@ -2,6 +2,7 @@ package Newton;
 
 use strict;
 use warnings;
+use Newton::Slurm;
 use DBI;
 use HTML::Template;
 use Data::Dumper;
@@ -530,8 +531,7 @@ sub sudo {
 sub node_install {
   node_install_dnsmasq();
   node_install_pxe();
-  node_install_slurm();
-  # Batch-queue
+  Newton::Slurm::create_config('/etc/slurm/cluster.conf');
   # Nagios
   # Ganglia
   }
@@ -566,18 +566,6 @@ sub node_install_pxe {
     `ln -sf $config $link`;
     }
   }
-
-sub node_install_slurm {
-   my @nodes = nodes(type=>'system');
-   my ($fh, $tempfile) = tempfile();
-   for(@nodes){
-      my ($basename) = $_->{name} =~ /^([^\.]+)\./;
-      print $fh "NodeName=$basename CPUs=1 State=UNKNOWN\n";
-   }
-   close $fh;
-  `sudo cp $tempfile /etc/slurm/nodes.conf`;
-  `sudo systemctl restart slurmctld`;
-}
 
 1;
 

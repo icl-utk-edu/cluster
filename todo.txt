@@ -1,6 +1,7 @@
 
+- docker registry
 - Distribute slurm nodes.conf (TFTP, HTTP, NFS?)
-- Mail sending from headnode
+- Mail sending from headnode (SPF record is correct)
 - nagios monitoring
 - Disable/Enable nodes based on nagios checks
 - Store node rsyslogs into other location

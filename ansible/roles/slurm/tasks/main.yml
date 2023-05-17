@@ -23,8 +23,7 @@
 - name: Configure slurm
   copy: src={{item}}.conf dest=/etc/slurm/ force=false
   loop:
-    - nodes
-    - partitions
+    - cluster
     - slurm
   notify: "Restart slurmctld"
 

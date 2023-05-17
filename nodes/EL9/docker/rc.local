@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # If hostname is set improperly, reboot and try again
-HOSTNAME=`hostname -f`
-if [[ $HOSTNAME =~ "icl.utk.edu" ]]; then
+SHORTNAME=`hostname -s`
+FULLNAME=`hostname -f`
+if [[ $FULLNAME =~ "icl.utk.edu" ]]; then
    shutdown -r now
 fi
 
@@ -38,8 +39,11 @@ if [ $SWAPDEV ] ; then
 fi
 
 
-# Resume processing of slurm jobs
-scontrol update nodename=`hostname -s` state=resume
+# Set up Slurm
+echo NodeName=$SHORTNAME CPUs=1 State=UNKNOWN >> /etc/slurm/nodes.conf
+systemctl start slurmd
+sleep 5
+scontrol update nodename=$SHORTNAME state=resume
 
 
 # Relax hardware access limits for PAPI
