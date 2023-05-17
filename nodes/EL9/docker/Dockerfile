@@ -21,14 +21,12 @@ RUN dnf -y install rsyslog && \
 # Slurm
 RUN dnf -y install epel-release && \
     dnf -y install slurm-slurmd munge
-RUN systemctl enable munge
-# slurmd is not enabled because it will be started by rc.local
+RUN systemctl enable munge slurmd
 RUN useradd --no-create-home --system -g daemon --uid 9 slurm
 COPY --from=munge --chown=munge:munge munge.key /etc/munge/
-COPY --from=slurm slurm.conf /etc/slurm/
-COPY --from=slurm nodes.conf /etc/slurm/
-COPY --from=slurm partitions.conf /etc/slurm/
-RUN echo files /etc/slurm/nodes.conf >> /etc/rwtab
+COPY slurmd.sysconfig /etc/sysconfig/slurmd
+RUN rm -f /etc/slurm/slurm.conf
+
 
 # LDAP for user accounts and authentication
 RUN dnf -y install openldap-clients sssd sssd-ldap authselect && \
@@ -73,7 +71,7 @@ RUN mkdir /apps
 # Install kernel
 RUN dnf -y install kernel kernel-devel dracut-network rpcbind nfs-utils dkms
 # Build kernel modules
-RUN dkms autoinstall && dkms status
+RUN dkms autoinstall -k `rpm -q kernel | sed 's/kernel-//'` && dkms status
 # Build initrd
 RUN dracut --force --add nfs --no-hostonly --kver `rpm -q kernel | sed 's/kernel-//'`
 RUN chmod 644 /boot/initramfs*.img

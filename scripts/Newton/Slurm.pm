@@ -28,7 +28,7 @@ sub create_config {
    close $fh;
    `sudo cp $tempfile $outfile`;
    `sudo chmod 644 $outfile`;
-   `sudo systemctl restart slurmctld`;
+   `sudo systemctl reload slurmctld`;
 }
 
 sub partition {

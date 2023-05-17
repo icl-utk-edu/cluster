@@ -1,0 +1,2 @@
+SLURMD_OPTIONS="--conf-server headnode"
+
