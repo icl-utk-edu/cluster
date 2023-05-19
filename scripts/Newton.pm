@@ -546,7 +546,7 @@ sub node_install_dnsmasq {
     print $fh "dhcp-host=$_->{mac},$_->{name},$_->{ip}\n";
     }
   close $fh;
-  `sudo cp $tempfile /etc/dnsmasq.d/nodes.conf`;
+  `sudo mv $tempfile /etc/dnsmasq.d/nodes.conf`;
   `sudo systemctl restart dnsmasq`;
 }
 

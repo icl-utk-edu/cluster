@@ -26,7 +26,7 @@ sub create_config {
       print $fh partition($set, $nodelist, 'NO');
    }
    close $fh;
-   `sudo cp $tempfile $outfile`;
+   `sudo mv $tempfile $outfile`;
    `sudo chmod 644 $outfile`;
    `sudo systemctl reload slurmctld`;
 }

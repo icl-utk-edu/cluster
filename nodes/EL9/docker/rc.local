@@ -1,10 +1,13 @@
 #!/bin/bash
 
+sleep 30
+
 # If hostname is set improperly, reboot and try again
 SHORTNAME=`hostname -s`
 FULLNAME=`hostname -f`
 if [[ $FULLNAME =~ "icl.utk.edu" ]]; then
-   shutdown -r now
+   hostname $SHORTNAME.cluster
+   #shutdown -r now
 fi
 
 
@@ -27,8 +30,8 @@ if [[ `zfs list -H` ]]; then
    mount -o bind /var/lib/stateless/writable/etc/exports /etc/exports
    systemctl start nfs-server
 else
-   mount test1.cluster:/home /home
-   mount test1.cluster:/apps /apps
+   mount methane.cluster:/home /home
+   mount methane.cluster:/apps /apps
 fi
 
 
@@ -39,10 +42,7 @@ if [ $SWAPDEV ] ; then
 fi
 
 
-# Set up Slurm
-#echo NodeName=$SHORTNAME CPUs=1 State=UNKNOWN >> /etc/slurm/nodes.conf
-#systemctl start slurmd
-#sleep 5
+# Resume processing slurm jobs
 scontrol update nodename=$SHORTNAME state=resume
 
 
@@ -53,8 +53,8 @@ if [ -e /proc/sys/kernel/numa_balancing ]; then
 fi
 
 
-# Disable NV daemon is no NV hardware
-nvidia-smi || systemctl stop nvidia-persistenced
+# Start the NV daemon if the nvidia module is loaded
+awk '{print $1}' /proc/modules | grep '^nvidia$' && systemctl start nvidia-persistenced
 
 # Do everything else
 for script in $(find /etc/rc.d/rc3.d -type f | sort);do

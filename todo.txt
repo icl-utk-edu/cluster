@@ -20,3 +20,7 @@
 - Nodes: custom commands (locate, module_variants)
 - Find better way to set login node hostname
 - runall should ignore command-line arguments after the command-name (with -r)
+- reduce CPU use of containerd
+- methane doesn't support ipmi lanplus?
+- create custom ICL prompt for csh
+- Failed to set wall message, ignoring: Could not activate remote peer.

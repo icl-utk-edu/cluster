@@ -23,7 +23,7 @@ CLIENTSTATE=
 SLAVE_MOUNTS=yes
 
 DEV=`awk '$2==0{print $4}' /proc/partitions`
-test=`blkid | wc -l`
+test=`blkid /dev/$DEV | wc -l`
 if [ $test == 0 ] && [ x$DEV != x ] ; then
   echo Formatting
   dd if=/dev/zero of=/dev/$DEV bs=1M count=100

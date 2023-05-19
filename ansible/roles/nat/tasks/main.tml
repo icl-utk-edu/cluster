@@ -1,6 +1,9 @@
 
-- name: Enable NAT
+- name: Enable NAT public
   firewalld: zone=public masquerade=true state=enabled permanent=true immediate=true
+
+- name: Enable NAT internal
+  firewalld: zone=internal masquerade=true state=enabled permanent=true immediate=true
 
 - name: Enable IPv4 forwarding
   sysctl:

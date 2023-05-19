@@ -1,6 +1,7 @@
 FROM rockylinux:9
 
-RUN dnf -y update
+# Reinstall because some files (like man pages) aren't installed at first
+RUN dnf -y reinstall \* && dnf -y update
 
 RUN dnf -y install readonly-root e2fsprogs
 COPY readonly-root /etc/sysconfig/
@@ -9,14 +10,15 @@ RUN dnf -y install openssh-server && \
     systemctl enable sshd
 
 # Prepare for direct-to-root ssh access
-RUN mkdir /root/.ssh && chmod 700 /root/.ssh
+RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
 COPY sshd_custom.conf /etc/ssh/sshd_config.d/
 
 RUN dnf -y install OpenIPMI ipmitool && \
     systemctl enable ipmi
 
 RUN dnf -y install rsyslog && \
-    echo '*.* @headnode' > /etc/rsyslog.d/remote.conf
+    echo '*.* @headnode' > /etc/rsyslog.d/remote.conf && \
+    echo empty /var/lib/rsyslog/ > /etc/rwtab
 
 # Slurm
 RUN dnf -y install epel-release && \
@@ -56,7 +58,6 @@ COPY cuda.repo /etc/yum.repos.d/
 RUN dnf -y install kmod-nvidia-latest-dkms nvidia-driver-cuda
 #nvidia-driver-cuda-libs
 #RUN dnf -y install cuda-11-8 kmod-nvidia-latest-dkms
-RUN systemctl enable nvidia-persistenced
 RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
 
 COPY rocm.repo /etc/yum.repos.d/
@@ -84,7 +85,7 @@ RUN rm /etc/NetworkManager/system-connections/*
 COPY --from=common motd /etc/
 
 RUN dnf -y install environment-modules
-COPY spack.* /etc/profile.d/
+COPY spack.* prompt.sh /etc/profile.d/
 
 COPY docker.repo /etc/yum.repos.d/
 RUN dnf -y install docker-ce && \
@@ -96,7 +97,7 @@ RUN dnf -y install docker-ce && \
 COPY rc.local /etc/rc.d/rc.local
 RUN systemctl enable rc-local
 
-RUN dnf -y install csh zsh sed
+RUN dnf -y install csh zsh sed pciutils gcc-gfortran
 RUN dnf clean all
 
 

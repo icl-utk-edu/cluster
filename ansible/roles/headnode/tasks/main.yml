@@ -30,6 +30,7 @@
           - sqlite
           - bind-utils
           - vim
+          - pciutils
 
 # Using docker for node image building instead
 #- name: Configure dracut for creating pxe boot image
