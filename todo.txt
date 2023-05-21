@@ -1,6 +1,5 @@
 
-- docker registry
-- Distribute slurm nodes.conf (TFTP, HTTP, NFS?)
+- Rebuild node image without crashing nodes
 - Mail sending from headnode (SPF record is correct)
 - nagios monitoring
 - Disable/Enable nodes based on nagios checks
@@ -8,7 +7,6 @@
 - cluster-aware fail2ban
 - inventory script (web and command-line)
 - Modules: set default for rocm/hip, cuda, gcc, and openmpi
-- Modules: build with x86_64 arch
 - ZFS homedir quotas
 - ZFS snapshots
 - sudo support (with password?)
@@ -18,9 +16,8 @@
    - external docker context to get ansible config
 - Store node rsyslogs into other location
 - Nodes: custom commands (locate, module_variants)
-- Find better way to set login node hostname
-- runall should ignore command-line arguments after the command-name (with -r)
+- runall -r should ignore command-line arguments after the command-name
 - reduce CPU use of containerd
 - methane doesn't support ipmi lanplus?
-- create custom ICL prompt for csh
-- Failed to set wall message, ignoring: Could not activate remote peer.
+- shutdown: Failed to set wall message, ignoring: Could not activate remote peer.
+- docker registry with write restriction

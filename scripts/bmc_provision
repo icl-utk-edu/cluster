@@ -20,12 +20,11 @@ my $dir = "/newton/scripts";
 my $pxedir = '/newton/files/pxelinux';
 my $BMC_USER = 'USERID';
 
-my ($role, $domain, $nodeset, $BMC_INT) = qw(0 local 0 lanplus);
+my ($role, $domain, $nodeset) = qw(0 local 0);
 my $ok = GetOptions(
   'role|r=s' => \$role,
   'domain|d=s' => \$domain,
   'nodeset=s' => \$nodeset,
-  'ipmi=s' => \$BMC_INT,
   );
 my $basename = shift @ARGV;
 
@@ -63,7 +62,7 @@ print "Power on sequence\n";
 # turn on main system for all detected BMC interfaces
 for(keys %BMC){
   my $ip = $_;
-  my ($status) = Newton::ipmi('chassis power status', $ip, $bmc_passwd, $BMC_USER, $BMC_INT);
+  my ($status) = Newton::ipmi('chassis power status', $ip, $bmc_passwd, $BMC_USER);
   unless(defined $status and $status =~ /power/is){
     print "$ip is not responding\n";
     delete $BMC{$ip};
@@ -71,7 +70,7 @@ for(keys %BMC){
     }
   my $cmd = ($status =~ /\s+on\s*$/i) ? 'cycle' : 'on';
   print "$ip power $cmd\n";
-  print Newton::ipmi("chassis power $cmd", $ip, $bmc_passwd, $BMC_USER, $BMC_INT);
+  print Newton::ipmi("chassis power $cmd", $ip, $bmc_passwd, $BMC_USER);
   }
 
 # listen for newly detected systems
@@ -104,7 +103,7 @@ print scalar(@upBMCs)," BMC up.\n";
 for(@upBMCs){
   my $bmc = $_;
   print "Turning off BMC $bmc\n";
-  Newton::ipmi('chassis power off', $bmc, $bmc_passwd, $BMC_USER, $BMC_INT);
+  Newton::ipmi('chassis power off', $bmc, $bmc_passwd, $BMC_USER);
   my (@down, $c);
   while($c++ < 20 && @down == 0){
     sleep 1;

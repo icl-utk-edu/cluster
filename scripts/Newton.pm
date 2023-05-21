@@ -66,14 +66,16 @@ sub ldap {
 }
 
 sub ipmi {
-  my ($cmd, $ip, $passwd, $user, $int) = @_;
-  $user ||= 'root';
-  $int ||= 'lanplus';
+  my ($cmd, $ip, $passwd, $user) = @_;
   $passwd ||= bmc_passwd();
+  $user ||= 'root';
   my @out;
   for( ref($ip) ? @$ip : $ip){
-    my @data = `/usr/bin/ipmitool -I $int -H $_ -U $user -P $passwd $cmd 2>/dev/null`;
-    #my @data = `ping -c1 -W10 $_ 2>\&1 > /dev/null && /usr/bin/ipmitool -I $int -H $_ -U $user -P $passwd $cmd 2>/dev/null`;
+    my @data;
+    for my $int ('lanplus', 'lan'){
+       @data = `/usr/bin/ipmitool -I $int -H $_ -U $user -P $passwd $cmd 2>/dev/null`;
+       last unless $?;
+    }
     return @data unless ref($ip);
     push @out, \@data;
     }

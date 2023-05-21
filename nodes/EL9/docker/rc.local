@@ -21,6 +21,12 @@ fi
 zpool import -a || true
 
 
+# Start docker if a filesystem is mounted at /var/lib/docker
+if [[ `touch /var/lib/docker/test` ]]; then
+   systemctl start docker
+fi
+
+
 # If hosting a zfs filesystem mounted on /home, exports it via NFS
 # Otherwise mount a remote NFS as /home
 if [[ `zfs list -H` ]]; then

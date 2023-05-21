@@ -18,7 +18,7 @@ RUN dnf -y install OpenIPMI ipmitool && \
 
 RUN dnf -y install rsyslog && \
     echo '*.* @headnode' > /etc/rsyslog.d/remote.conf && \
-    echo empty /var/lib/rsyslog/ > /etc/rwtab
+    echo empty /var/lib/rsyslog/ >> /etc/rwtab
 
 # Slurm
 RUN dnf -y install epel-release && \
@@ -78,8 +78,6 @@ RUN dracut --force --add nfs --no-hostonly --kver `rpm -q kernel | sed 's/kernel
 RUN chmod 644 /boot/initramfs*.img
 RUN ls /lib/modules | xargs -Iggg cp /lib/modules/ggg/vmlinuz /boot/vmlinuz-ggg
 
-#RUN systemctl disable NetworkManager
-#RUN echo files /etc/hostname >> /etc/rwtab
 RUN rm /etc/NetworkManager/system-connections/*
 
 COPY --from=common motd /etc/
@@ -89,13 +87,22 @@ COPY spack.* prompt.sh /etc/profile.d/
 
 COPY docker.repo /etc/yum.repos.d/
 RUN dnf -y install docker-ce && \
-    systemctl enable docker && \
     mkdir /var/lib/docker /var/lib/containerd && \
     echo empty /var/lib/containerd >> /etc/rwtab
-# Nodes that will run docker will have ZFS mounted at /var/lib/docker
+    # Docker and containerd are started by rc.local
 
 COPY rc.local /etc/rc.d/rc.local
 RUN systemctl enable rc-local
+
+RUN dnf -y install autofs && \
+    systemctl enable autofs && \
+    echo "/nfs /etc/auto.nfs" > /etc/auto.master && \
+    echo "www ash2.icl.utk.edu:/sw/www" > /etc/auto.nfs && \
+    mkdir -p /nfs
+
+RUN echo "files /var/lib/systemd" >> /etc/rwtab
+
+RUN systemctl disable upower
 
 RUN dnf -y install csh zsh sed pciutils gcc-gfortran
 RUN dnf clean all

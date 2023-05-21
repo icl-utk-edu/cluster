@@ -69,3 +69,6 @@
 
 - name: Remove IPA config for SSH
   file: path=/etc/ssh/ssh_config.d/04-ipa.conf state=absent
+
+- name: Set sudo timeout
+  command: echo Defaults timestamp_timeout=60 > /etc/sudoers.d/timeout
