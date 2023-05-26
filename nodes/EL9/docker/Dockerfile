@@ -55,7 +55,7 @@ RUN dnf -y group install development debugging
 RUN dnf -y install zsh vim tmux screen man emacs-nox xauth rsync java-11-openjdk sudo
 
 COPY cuda.repo /etc/yum.repos.d/
-RUN dnf -y install kmod-nvidia-latest-dkms nvidia-driver-cuda
+RUN dnf -y install kmod-nvidia-latest-dkms nvidia-driver-cuda cuda-drivers-fabricmanager
 #nvidia-driver-cuda-libs
 #RUN dnf -y install cuda-11-8 kmod-nvidia-latest-dkms
 RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
@@ -67,7 +67,7 @@ RUN dnf -y install rocm-smi-lib amdgpu-dkms
 
 RUN dnf -y install https://zfsonlinux.org/epel/zfs-release-2-2$(rpm --eval "%{dist}").noarch.rpm
 RUN dnf -y install zfs
-RUN mkdir /apps
+RUN mkdir -p /apps /data
 
 # Install kernel
 RUN dnf -y install kernel kernel-devel dracut-network rpcbind nfs-utils dkms
@@ -89,6 +89,7 @@ COPY docker.repo /etc/yum.repos.d/
 RUN dnf -y install docker-ce && \
     mkdir /var/lib/docker /var/lib/containerd && \
     echo empty /var/lib/containerd >> /etc/rwtab
+COPY docker-daemon.json /etc/docker/daemon.json
     # Docker and containerd are started by rc.local
 
 COPY rc.local /etc/rc.d/rc.local
@@ -96,15 +97,20 @@ RUN systemctl enable rc-local
 
 RUN dnf -y install autofs && \
     systemctl enable autofs && \
+    rm -rf /etc/auto.* && \
     echo "/nfs /etc/auto.nfs" > /etc/auto.master && \
-    echo "www ash2.icl.utk.edu:/sw/www" > /etc/auto.nfs && \
     mkdir -p /nfs
+COPY auto.nfs /etc/
 
 RUN echo "files /var/lib/systemd" >> /etc/rwtab
 
 RUN systemctl disable upower
 
 RUN dnf -y install csh zsh sed pciutils gcc-gfortran
+RUN dnf -y install perl-DBI perl-DBD-SQLite dmidecode cpuid
+
+COPY authorized_keys /root/.ssh/authorized_keys
+
 RUN dnf clean all
 
 

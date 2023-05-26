@@ -11,7 +11,9 @@ set -x
 NAME=$1
 BASEDIR=$(cluster_basedir)
 DIR=$BASEDIR/nodes/$NAME
-ROOTFS=$DIR/rootfs
+DATE=`date '+%F-%T'`
+ROOTFS=$DIR/rootfs-$DATE
+
 if [[ -z "$NAME" || ! -d $DIR ]]; then
 	echo "Please provide a valid node image name"
 	exit 1
@@ -25,7 +27,6 @@ docker build --progress=plain -t temp \
 	--build-context common=$BASEDIR/nodes/common .
 docker remove temp || true
 docker run -it --name temp temp sleep 0
-rm -rf $ROOTFS/* || true
 mkdir -p $ROOTFS
 cd $ROOTFS
 docker export temp | tar -x
@@ -35,10 +36,13 @@ echo -e "search cluster\nnameserver $headnode" > etc/resolv.conf
 
 cp -a /etc/ssh/ssh_host_rsa* etc/ssh/
 chmod 600 etc/ssh/ssh_host*key
-cat /root/.ssh/*.pub > root/.ssh/authorized_keys
+cat /root/.ssh/*.pub >> root/.ssh/authorized_keys
 
 cd ..
+rm rootfs
+ln -sf $ROOTFS rootfs
 ln -sf rootfs/boot/vmlinuz* kernel
 ln -sf rootfs/boot/init*.img initrd
+touch $ROOTFS/$date
 echo Success!
 

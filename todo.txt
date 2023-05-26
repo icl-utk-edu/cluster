@@ -1,5 +1,19 @@
 
-- Rebuild node image without crashing nodes
+- Need no_root_squash on methane nfs export
+- Update rocm to 5.5
+- Move troy, orbitty,spacely,adrenochrome into cluster
+- Plan for replacement of head/login nodes
+- Restart github and jenkins runners
+- Set up omega* as backup headnode/login node
+- Remove omega1,harry network and power
+- backup of home directories and /apps to omega0
+- login node got wrong default route, need better method
+- Need ipmi access on leconte
+- Need to set MaxNodeCount and SelectType=select/cons_res on slurmctld
+- iPXE config: https://forum.ipxe.org/showthread.php?tid=7231&pid=10281
+- Use zfs for /cluster
+- Add second drive to headnode for raidz mirror
+- Script to clear out old node images
 - Mail sending from headnode (SPF record is correct)
 - nagios monitoring
 - Disable/Enable nodes based on nagios checks

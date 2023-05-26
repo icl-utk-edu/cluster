@@ -1,0 +1,20 @@
+#!ipxe
+
+menu PXE Boot Options
+
+item pxe PXE boot EL9
+item shell iPXE shell
+#item exit  Exit to BIOS
+
+choose --default pxe --timeout 3000 option && goto ${option}
+
+:shell
+shell
+
+:pxe
+initrd default/initrd
+chain default/kernel initrd=initrd root=nfs:10.0.0.1:/cluster/nodes/EL9/rootfs ip=dhcp ipmi_si.force_kipmid=0 numa_balancing=disable
+
+#:exit
+#exit
+

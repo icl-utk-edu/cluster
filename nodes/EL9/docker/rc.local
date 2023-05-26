@@ -22,22 +22,22 @@ zpool import -a || true
 
 
 # Start docker if a filesystem is mounted at /var/lib/docker
-if [[ `touch /var/lib/docker/test` ]]; then
+if touch /var/lib/docker/test; then
    systemctl start docker
 fi
 
 
 # If hosting a zfs filesystem mounted on /home, exports it via NFS
 # Otherwise mount a remote NFS as /home
-if [[ `zfs list -H` ]]; then
+if [[ `zfs list -H -o mountpoint | grep '^/home$'` ]]; then
    for mntpnt in `zfs list -o mountpoint -H`; do
       echo "$mntpnt 10.0.0.0/24(rw)" >> /var/lib/stateless/writable/etc/exports
    done
    mount -o bind /var/lib/stateless/writable/etc/exports /etc/exports
    systemctl start nfs-server
 else
-   mount methane.cluster:/home /home
-   mount methane.cluster:/apps /apps
+   mount methane.cluster:/home /home &
+   mount methane.cluster:/apps /apps &
 fi
 
 
