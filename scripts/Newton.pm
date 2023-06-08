@@ -19,6 +19,7 @@ use Parallel;
 use File::Copy;
 
 our $adminEmail = 'Newton_HPC_help@utk.edu';
+our $IPMIUSER = 'icl';
 my $ssh_cmd = "ssh -nqxC -o 'ConnectTimeout=2' -o 'BatchMode=yes'";
 my $db;
 
@@ -68,12 +69,12 @@ sub ldap {
 sub ipmi {
   my ($cmd, $ip, $passwd, $user) = @_;
   $passwd ||= bmc_passwd();
-  $user ||= 'root';
+  $user ||= $IPMIUSER;
   my @out;
   for( ref($ip) ? @$ip : $ip){
     my @data;
     for my $int ('lanplus', 'lan'){
-       @data = `/usr/bin/ipmitool -I $int -H $_ -U $user -P $passwd $cmd 2>/dev/null`;
+       @data = `/usr/bin/ipmitool -C 3 -I $int -H $_ -U $user -P $passwd $cmd 2>/dev/null`;
        last unless $?;
     }
     return @data unless ref($ip);
@@ -500,12 +501,13 @@ sub WebQuery { # Get data from the newton.utk.edu database
 
 sub bmc_passwd {
   my $cmd = $ENV{USER} eq 'root' ? 'cat' : 'sudo cat';
-  open(IN, "$cmd /etc/shadow |") or die $!;
+  my $dir = basedir();
+  open(IN, "$cmd $dir/secrets |") or die $!;
   my ($passwd) = map {$_->[1]} 
-                 grep {$_->[0] eq 'root'} 
-                 map {[split /:/]} (<IN>);
+                 grep {$_->[0] eq 'ipmipasswd'} 
+                 map {[split /\s+/]} (<IN>);
   close IN;
-  return substr(md5_base64($passwd),0,8);
+  return $passwd;
   }
 
 sub add_address {

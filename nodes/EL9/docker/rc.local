@@ -31,7 +31,7 @@ fi
 # Otherwise mount a remote NFS as /home
 if [[ `zfs list -H -o mountpoint | grep '^/home$'` ]]; then
    for mntpnt in `zfs list -o mountpoint -H`; do
-      echo "$mntpnt 10.0.0.0/24(rw)" >> /var/lib/stateless/writable/etc/exports
+      echo "$mntpnt 10.0.0.0/24(rw,no_root_squash)" >> /var/lib/stateless/writable/etc/exports
    done
    mount -o bind /var/lib/stateless/writable/etc/exports /etc/exports
    systemctl start nfs-server
@@ -60,7 +60,9 @@ fi
 
 
 # Start the NV daemon if the nvidia module is loaded
-awk '{print $1}' /proc/modules | grep '^nvidia$' && systemctl start nvidia-persistenced
+awk '{print $1}' /proc/modules | grep '^nvidia$' && \
+	systemctl start nvidia-persistenced && \
+	systemctl start nvidia-fabricmanager
 
 # Do everything else
 for script in $(find /etc/rc.d/rc3.d -type f | sort);do

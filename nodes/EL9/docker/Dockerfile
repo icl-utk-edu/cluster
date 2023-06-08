@@ -103,13 +103,22 @@ RUN dnf -y install autofs && \
 COPY auto.nfs /etc/
 
 RUN echo "files /var/lib/systemd" >> /etc/rwtab
+RUN echo "files /root" >> /etc/rwtab
 
 RUN systemctl disable upower
 
-RUN dnf -y install csh zsh sed pciutils gcc-gfortran
+RUN dnf -y install csh zsh sed pciutils gcc-gfortran wget traceroute nmap
 RUN dnf -y install perl-DBI perl-DBD-SQLite dmidecode cpuid
 
 COPY authorized_keys /root/.ssh/authorized_keys
+
+RUN dnf -y install cronie && \
+    rm -f /etc/cron.deny
+RUN wget -O - https://github.com/zfsonlinux/zfs-auto-snapshot/archive/upstream/1.2.4.tar.gz | tar -zx && \
+    cd zfs-auto-snapshot* && \
+    make install && \
+    cd .. && rm -rf zfs-auto-snapshot*
+
 
 RUN dnf clean all
 

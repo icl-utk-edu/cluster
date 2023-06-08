@@ -6,7 +6,7 @@ gpgcheck=0
 
 [rocm]
 name=rocm
-baseurl=http://repo.radeon.com/rocm/rhel9/5.4.3/main/
+baseurl=http://repo.radeon.com/rocm/rhel9/5.5.1/main/
 enabled=1
 gpgcheck=0
 

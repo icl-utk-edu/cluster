@@ -1,28 +1,36 @@
 
-- Need no_root_squash on methane nfs export
-- Update rocm to 5.5
-- Move troy, orbitty,spacely,adrenochrome into cluster
-- Plan for replacement of head/login nodes
-- Restart github and jenkins runners
-- Set up omega* as backup headnode/login node
-- Remove omega1,harry network and power
-- backup of home directories and /apps to omega0
+Before June 1
+-------------
+- Plan for replacement of head/login nodes with omega1
+   - backup of /home, /apps, and /cluster to omega1
+   - Set up automatic backups
+- Use zfs raidz with two drives for /cluster
+- Add harry,caffeine to cluster
+- APC SmartUPS 2200 - battery charge flashing
+
+Important
+---------
+- Default route wrong on login nodes
+- Need zfs snapshots running more regularly?
+
+Later
+-----
+- Restart jenkins runners
+- Add bmcinterface to addresses table
+- Move troy, orbitty, adrenochrome into cluster
 - login node got wrong default route, need better method
-- Need ipmi access on leconte
 - Need to set MaxNodeCount and SelectType=select/cons_res on slurmctld
 - iPXE config: https://forum.ipxe.org/showthread.php?tid=7231&pid=10281
-- Use zfs for /cluster
-- Add second drive to headnode for raidz mirror
+   - Need to select node image based on mac address
 - Script to clear out old node images
 - Mail sending from headnode (SPF record is correct)
-- nagios monitoring
+- Nagios monitoring
 - Disable/Enable nodes based on nagios checks
 - Store node rsyslogs into other location
 - cluster-aware fail2ban
 - inventory script (web and command-line)
 - Modules: set default for rocm/hip, cuda, gcc, and openmpi
 - ZFS homedir quotas
-- ZFS snapshots
 - sudo support (with password?)
 - Need DNS alias support (e.g. for homedir -> test1.cluster)
 - Management: Create a class for "nodes" which has structure for querying cluster config

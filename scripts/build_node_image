@@ -43,6 +43,6 @@ rm rootfs
 ln -sf $ROOTFS rootfs
 ln -sf rootfs/boot/vmlinuz* kernel
 ln -sf rootfs/boot/init*.img initrd
-touch $ROOTFS/$date
+touch $ROOTFS/$DATE
 echo Success!
 
