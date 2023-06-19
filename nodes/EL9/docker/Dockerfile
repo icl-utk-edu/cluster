@@ -61,9 +61,9 @@ RUN dnf -y install kmod-nvidia-latest-dkms nvidia-driver-cuda cuda-drivers-fabri
 RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
 
 COPY rocm.repo /etc/yum.repos.d/
-RUN dnf -y install rocm-smi-lib amdgpu-dkms
-#RUN dnf -y --enablerepo=crb install perl-File-BaseDir perl-URI-Encode
-#RUN dnf -y install amdgpu-dkms rocm-hip-sdk rocm-dkms hip-nvcc rocprim rocm-ml-sdk rocm-openmp-sdk rocm-opencl-sdk rocm-developer-tools rocmtools-dev
+#RUN dnf -y install rocm-smi-lib amdgpu-dkms
+RUN dnf -y --enablerepo=crb install perl-File-BaseDir perl-URI-Encode
+RUN dnf -y install amdgpu-dkms rocm-hip-sdk rocm-dkms hip-nvcc rocprim rocm-ml-sdk rocm-openmp-sdk rocm-opencl-sdk rocm-developer-tools rocmtools-dev
 
 RUN dnf -y install https://zfsonlinux.org/epel/zfs-release-2-2$(rpm --eval "%{dist}").noarch.rpm
 RUN dnf -y install zfs
@@ -86,6 +86,7 @@ RUN dnf -y install environment-modules
 COPY spack.* prompt.sh /etc/profile.d/
 
 COPY docker.repo /etc/yum.repos.d/
+RUN groupadd -g 1001 docker
 RUN dnf -y install docker-ce && \
     mkdir /var/lib/docker /var/lib/containerd && \
     echo empty /var/lib/containerd >> /etc/rwtab
@@ -117,7 +118,8 @@ RUN dnf -y install cronie && \
 RUN wget -O - https://github.com/zfsonlinux/zfs-auto-snapshot/archive/upstream/1.2.4.tar.gz | tar -zx && \
     cd zfs-auto-snapshot* && \
     make install && \
-    cd .. && rm -rf zfs-auto-snapshot*
+    cd .. && rm -rf zfs-auto-snapshot* && \
+    ln -s /usr/local/sbin/zfs-auto-snapshot /usr/sbin/
 
 
 RUN dnf clean all
