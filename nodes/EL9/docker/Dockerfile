@@ -12,6 +12,7 @@ RUN dnf -y install openssh-server && \
 # Prepare for direct-to-root ssh access
 RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
 COPY sshd_custom.conf /etc/ssh/sshd_config.d/
+COPY --from=etc ssh/ssh_known_hosts /etc/ssh/
 
 RUN dnf -y install OpenIPMI ipmitool && \
     systemctl enable ipmi
@@ -52,7 +53,7 @@ COPY nftables.conf /etc/sysconfig/
 
 RUN dnf -y group install development debugging
 #RUN dnf -y group install infiniband
-RUN dnf -y install zsh vim tmux screen man emacs-nox xauth rsync java-11-openjdk sudo
+RUN dnf -y install zsh vim neovim tmux screen man emacs-nox xauth rsync java-11-openjdk sudo
 
 COPY cuda.repo /etc/yum.repos.d/
 RUN dnf -y install kmod-nvidia-latest-dkms nvidia-driver-cuda cuda-drivers-fabricmanager
@@ -108,8 +109,7 @@ RUN echo "files /root" >> /etc/rwtab
 
 RUN systemctl disable upower
 
-RUN dnf -y install csh zsh sed pciutils gcc-gfortran wget traceroute nmap
-RUN dnf -y install perl-DBI perl-DBD-SQLite dmidecode cpuid
+RUN dnf -y install csh zsh sed pciutils gcc-gfortran wget traceroute nmap perl-DBI perl-DBD-SQLite dmidecode cpuid mesa-dri-drivers
 
 COPY authorized_keys /root/.ssh/authorized_keys
 
@@ -120,7 +120,6 @@ RUN wget -O - https://github.com/zfsonlinux/zfs-auto-snapshot/archive/upstream/1
     make install && \
     cd .. && rm -rf zfs-auto-snapshot* && \
     ln -s /usr/local/sbin/zfs-auto-snapshot /usr/sbin/
-
 
 RUN dnf clean all
 

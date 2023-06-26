@@ -1,0 +1,19 @@
+#!/bin/bash -e
+
+if [ $USER != "root" ]; then
+   echo Running as root
+   sudo -i $0 $@
+   exit
+fi
+
+ACTIVE=`runall -rl 'stat -c "%i" /'`
+
+for image in `ls -d /cluster/nodes/*/rootfs-*`; do
+   image_inode=`stat -c '%i' $image`
+   for active_inode in $ACTIVE; do
+      [ $image_inode = $active_inode ] && continue 2
+   done
+   echo Removing image $image
+   rm -rf $image
+done
+

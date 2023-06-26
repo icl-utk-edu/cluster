@@ -74,7 +74,8 @@ sub ipmi {
   for( ref($ip) ? @$ip : $ip){
     my @data;
     for my $int ('lanplus', 'lan'){
-       @data = `/usr/bin/ipmitool -C 3 -I $int -H $_ -U $user -P $passwd $cmd 2>/dev/null`;
+       my $cmd = "/usr/bin/ipmitool -C 3 -I $int -H $_ -U $user -P $passwd $cmd";
+       @data = `$cmd 2>&1`;
        last unless $?;
     }
     return @data unless ref($ip);
