@@ -56,9 +56,10 @@ RUN dnf -y group install development debugging
 RUN dnf -y install zsh vim neovim tmux screen man emacs-nox xauth rsync java-11-openjdk sudo
 
 COPY cuda.repo /etc/yum.repos.d/
-RUN dnf -y install kmod-nvidia-latest-dkms nvidia-driver-cuda cuda-drivers-fabricmanager
-#nvidia-driver-cuda-libs
-#RUN dnf -y install cuda-11-8 kmod-nvidia-latest-dkms
+RUN dnf -y install kmod-nvidia-535.54.03-5.14.0-284.18.1-535.54.03-3.el9_2.x86_64 \
+                   nvidia-driver-cuda-535.54.03-1.el9.x86_64 \
+                   cuda-drivers-fabricmanager-535 \
+                   cuda-11.8.0
 RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
 
 COPY rocm.repo /etc/yum.repos.d/
@@ -109,7 +110,7 @@ RUN echo "files /root" >> /etc/rwtab
 
 RUN systemctl disable upower
 
-RUN dnf -y install csh zsh sed pciutils gcc-gfortran wget traceroute nmap perl-DBI perl-DBD-SQLite dmidecode cpuid mesa-dri-drivers
+RUN dnf -y install csh zsh sed pciutils gcc-gfortran wget traceroute nmap perl-DBI perl-DBD-SQLite dmidecode cpuid perf mesa-dri-drivers
 
 COPY authorized_keys /root/.ssh/authorized_keys
 
