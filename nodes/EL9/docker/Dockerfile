@@ -72,7 +72,7 @@ RUN dnf -y install zfs
 RUN mkdir -p /apps /data
 
 # Install kernel
-RUN dnf -y install kernel kernel-devel dracut-network rpcbind nfs-utils dkms
+RUN dnf -y install kernel kernel-devel dracut-network rpcbind nfs-utils dkms NetworkManager
 # Build kernel modules
 RUN dkms autoinstall -k `rpm -q kernel | sed 's/kernel-//'` && dkms status
 # Build initrd

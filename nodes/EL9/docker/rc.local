@@ -12,6 +12,9 @@ fi
 
 
 # Try to set the default route for login nodes to the external interface
+ip route del default
+ip route del default
+ip route add default via 10.0.0.1
 ip route add default via 160.36.131.1
 
 
