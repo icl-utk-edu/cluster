@@ -1,0 +1,8 @@
+#!/bin/bash
+
+for host in $@; do
+   /usr/bin/ping $host &
+done
+
+wait
+

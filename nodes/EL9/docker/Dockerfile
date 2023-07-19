@@ -121,6 +121,7 @@ RUN wget -O - https://github.com/zfsonlinux/zfs-auto-snapshot/archive/upstream/1
     make install && \
     cd .. && rm -rf zfs-auto-snapshot* && \
     ln -s /usr/local/sbin/zfs-auto-snapshot /usr/sbin/
+COPY zfs-prune.sh /etc/cron.daily/
 
 RUN dnf clean all
 
