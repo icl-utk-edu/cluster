@@ -1,0 +1,38 @@
+#!/bin/bash
+
+sleep 30
+
+# If hostname is set improperly, reboot and try again
+SHORTNAME=`hostname -s`
+FULLNAME=`hostname -f`
+if [[ $FULLNAME =~ "icl.utk.edu" ]]; then
+   hostname $SHORTNAME.cluster
+   #shutdown -r now
+fi
+
+
+# Try to set the default route for login nodes to the external interface
+ip route del default
+ip route del default
+ip route add default via 160.36.131.1
+ip route add default via 10.0.0.1
+
+
+# Activate swap
+SWAPDEV=`blkid -t TYPE=swap -o device`
+if [ $SWAPDEV ] ; then
+   swapon $SWAPDEV
+fi
+
+
+# Start the NV daemon if the nvidia module is loaded
+awk '{print $1}' /proc/modules | grep '^nvidia$' && \
+	systemctl start nvidia-persistenced && \
+	systemctl start nvidia-fabricmanager
+
+# Do everything else
+for script in $(find /etc/rc.d/rc3.d -type f | sort);do
+  $script
+done
+
+touch /var/lock/subsys/local
