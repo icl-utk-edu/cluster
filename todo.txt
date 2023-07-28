@@ -11,7 +11,6 @@ Before June 1
 Important
 ---------
 - Default route wrong on login nodes
-- Need zfs snapshots running more regularly?
 
 Later
 -----
