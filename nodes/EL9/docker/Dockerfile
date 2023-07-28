@@ -123,6 +123,8 @@ RUN wget -O - https://github.com/zfsonlinux/zfs-auto-snapshot/archive/upstream/1
     ln -s /usr/local/sbin/zfs-auto-snapshot /usr/sbin/
 COPY zfs-prune.sh /etc/cron.daily/
 
+RUN echo "%admins ALL=(ALL) ALL" > /etc/sudoers.d/admins
+
 RUN dnf clean all
 
 
