@@ -1,25 +1,4 @@
 #!ipxe
 
-menu PXE Boot Options
-
-item pxe9 PXE boot EL9
-item pxe8 PXE boot EL8
-item shell iPXE shell
-#item exit  Exit to BIOS
-
-choose --default pxe9 --timeout 3000 option && goto ${option}
-
-:shell
-shell
-
-:pxe9
-initrd EL9/initrd
-chain EL9/kernel initrd=initrd root=nfs:10.0.0.1:/cluster/nodes/EL9/rootfs ip=dhcp ipmi_si.force_kipmid=0 numa_balancing=disable
-
-:pxe8
-initrd EL8/initrd
-chain EL8/kernel initrd=initrd root=nfs:10.0.0.1:/cluster/nodes/EL8/rootfs ip=dhcp ipmi_si.force_kipmid=0 numa_balancing=disable
-
-#:exit
-#exit
+chain --autofree roles/${mac:hexraw} || chain --autofree roles/default
 

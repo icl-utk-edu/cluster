@@ -560,14 +560,14 @@ sub node_install_pxe {
   my @nodes = nodes(type=>'system');
   for(@nodes){
     my $role = $_->{role};
-    my $config = "$basedir/nodes/$role/pxe.config";
+    my $config = "$basedir/nodes/$role/config.ipxe";
     unless(defined($role) and -e $config){
       $role = '';
       warn "Warning: Node role '$role' not found!";
       next;
       }
-    $_->{mac} =~ s/:/\-/g;
-    my $link = "$basedir/nodes/pxelinux.cfg/01-" . $_->{mac};
+    $_->{mac} =~ s/://g;
+    my $link = "$basedir/nodes/roles/" . lc($_->{mac});
     `ln -sf $config $link`;
     }
   }

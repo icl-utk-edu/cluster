@@ -55,3 +55,7 @@ RUN /usr/libexec/openssh/sshd-keygen rsa
 
 RUN echo SELINUX=disabled > /etc/selinux/config
 
+# Podman for NV firmware update container
+RUN dnf -y install podman
+
+

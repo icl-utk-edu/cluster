@@ -6,14 +6,14 @@ if [ $USER != "root" ]; then
    exit
 fi
 
-ACTIVE=`runall -rl 'stat -c "%i" /'`
+ACTIVE=`runall -rl 'stat -c "%i" /' | awk '{print $2}' | sort -u`
 
 for image in `ls -d /cluster/nodes/*/rootfs-*`; do
    image_inode=`stat -c '%i' $image`
    for active_inode in $ACTIVE; do
       [ $image_inode = $active_inode ] && continue 2
    done
-   echo Removing image $image
+   read -p "Remove image $image?"
    rm -rf $image
 done
 

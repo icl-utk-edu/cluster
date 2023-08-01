@@ -37,7 +37,7 @@ if(not defined $role){
   }
 
 die "Role $role is not available.\n"
-  unless -e "$basedir/nodes/$role/pxe.config";
+  unless -e "$basedir/nodes/$role/config.ipxe";
 
 my $nodes = $db->selectcol_arrayref(
   "SELECT name FROM addresses WHERE $where",

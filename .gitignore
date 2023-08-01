@@ -1,5 +1,5 @@
 nodes/*/rootfs*
-nodes/pxelinux.cfg
+nodes/roles
 cluster.db
 nodes/common/ldapuser_password.txt
 secrets
