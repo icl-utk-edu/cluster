@@ -24,7 +24,8 @@ Later
 - Script to clear out old node images
 - Mail sending from headnode (SPF record is correct)
 - Nagios monitoring
-- Disable/Enable nodes based on nagios checks
+  - Monitor: ping, ssh, uid resolving
+  - Disable/Enable nodes based on nagios checks
 - Store node rsyslogs into other location
 - cluster-aware fail2ban
 - inventory script (web and command-line)

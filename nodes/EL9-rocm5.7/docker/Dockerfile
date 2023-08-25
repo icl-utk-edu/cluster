@@ -126,6 +126,8 @@ RUN echo "%admins ALL=(ALL) ALL" > /etc/sudoers.d/admins
 # Remove memlock limit for MPI
 COPY limits.conf /etc/security/
 
+COPY nfs.conf /etc/
+
 RUN dnf clean all
 
 

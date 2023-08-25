@@ -1,0 +1,5 @@
+#!ipxe
+
+initrd /EL9-rocm5.7/initrd
+chain /EL9-rocm5.7/kernel initrd=initrd root=nfs:10.0.0.1:/cluster/nodes/EL9-rocm5.7/rootfs ip=dhcp ipmi_si.force_kipmid=0 numa_balancing=disable
+

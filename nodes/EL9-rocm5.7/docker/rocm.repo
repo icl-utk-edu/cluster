@@ -1,0 +1,14 @@
+[amdgpu]
+name=amdgpu
+baseurl=https://repo.radeon.com/amdgpu/.5.7/rhel/9.2/main/x86_64/
+#baseurl=https://repo.radeon.com/amdgpu/latest/rhel/9.1/main/x86_64/
+enabled=1
+gpgcheck=0
+
+[rocm]
+name=rocm
+baseurl=https://repo.radeon.com/rocm/rhel9/.yum_5.7/main/
+#baseurl=http://repo.radeon.com/rocm/rhel9/5.5.1/main/
+enabled=1
+gpgcheck=0
+

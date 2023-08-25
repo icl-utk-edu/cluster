@@ -1,4 +1,6 @@
 nodes/*/rootfs*
+nodes/*/initrd
+nodes/*/kernel
 nodes/roles
 cluster.db
 nodes/common/ldapuser_password.txt
