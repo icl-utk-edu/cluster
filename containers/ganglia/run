@@ -1,0 +1,16 @@
+#!/bin/bash -e
+
+NAME=ganglia
+
+docker build -t $NAME .
+{
+docker stop $NAME
+docker rm $NAME
+} || true
+
+docker run --name $NAME \
+   -d --restart=unless-stopped \
+   -v ganglia:/var/lib/ganglia \
+   -p 80:80 \
+   $NAME
+

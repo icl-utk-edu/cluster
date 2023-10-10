@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Newton;
+use Getopt::Long;
+
+my $basedir = Newton::basedir();
+
+my ($name, $mac) = @ARGV;
+die "Usage: change_mac <hostname> <macaddress>\n" unless defined $name and defined $mac;
+
+my $db = Newton::db();
+$db->{AutoCommit} = 1;
+$db->{RaiseError} = 1;
+
+my $mac_int = Newton::addr2i($mac);
+print "UPDATE addresses SET mac=$mac_int WHERE name=$name\n";
+
+$db->do('UPDATE addresses SET mac=? WHERE name=?', undef, $mac_int, $name);
+
+
