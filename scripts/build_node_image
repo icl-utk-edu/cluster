@@ -44,6 +44,6 @@ rm -f rootfs
 ln -sf $ROOTFS rootfs
 ln -sf rootfs/boot/vmlinuz* kernel
 ln -sf rootfs/boot/init*.img initrd
-touch $ROOTFS/$DATE
+touch $ROOTFS/$NAME-$DATE
 echo Success!
 

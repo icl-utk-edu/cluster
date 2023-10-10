@@ -13,7 +13,7 @@ sub create_config {
    my ($fh, $tempfile) = tempfile();
    for(@nodes){
       my ($basename) = $_->{name} =~ /^([^\.]+)\./;
-      print $fh "NodeName=$basename CPUs=1 State=UNKNOWN\n";
+      print $fh "NodeName=$basename CPUs=8 Sockets=2 CoresPerSocket=2 ThreadsPerCore=2 State=UNKNOWN\n";
       next unless $_->{nodeset};
       push @{$sets{$_->{nodeset}}}, $basename;
    }

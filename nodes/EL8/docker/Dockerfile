@@ -47,7 +47,7 @@ RUN systemctl enable rc-local
 RUN echo "files /var/lib/systemd" >> /etc/rwtab
 RUN echo "files /root" >> /etc/rwtab
 
-RUN dnf -y install vim csh zsh sed pciutils gcc-gfortran wget dmidecode
+RUN dnf -y install vim csh zsh sed pciutils gcc-gfortran wget dmidecode rsync openssh-clients
 
 RUN dnf clean all
 
@@ -57,5 +57,7 @@ RUN echo SELINUX=disabled > /etc/selinux/config
 
 # Podman for NV firmware update container
 RUN dnf -y install podman
+
+RUN dnf -y install epel-release && dnf -y install screen
 
 

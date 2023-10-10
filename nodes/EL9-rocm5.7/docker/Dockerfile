@@ -52,8 +52,7 @@ RUN dnf -y install nftables
 RUN systemctl enable nftables
 COPY nftables.conf /etc/sysconfig/
 
-RUN dnf -y group install development debugging
-#RUN dnf -y group install infiniband
+RUN dnf -y group install development debugging infiniband
 RUN dnf -y install zsh vim neovim tmux screen man emacs-nox xauth rsync java-11-openjdk sudo
 
 # Install kernel
@@ -97,6 +96,8 @@ COPY docker-daemon.json /etc/docker/daemon.json
 
 COPY rc.local /etc/rc.d/rc.local
 RUN systemctl enable rc-local
+COPY set_ipoib /usr/local/bin/
+RUN echo enpty /
 
 RUN dnf -y install autofs && \
     systemctl enable autofs && \
@@ -128,6 +129,12 @@ COPY limits.conf /etc/security/
 
 COPY nfs.conf /etc/
 
+# Ganglia
+RUN dnf -y install ganglia-gmond && \
+    systemctl enable gmond
+COPY gmond.conf /etc/ganglia/
+
+RUN dnf -y install tcpdump net-tools lz4
 RUN dnf clean all
 
 

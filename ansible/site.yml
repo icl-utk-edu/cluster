@@ -9,3 +9,4 @@
           - nat
           - docker
           - ipa-client
+          - ganglia-gmond

@@ -1,3 +1,4 @@
+ansible/temp.yml
 nodes/*/rootfs*
 nodes/*/initrd
 nodes/*/kernel

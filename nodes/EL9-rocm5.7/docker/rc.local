@@ -17,6 +17,10 @@ ip route add default via 160.36.131.1
 ip route add default via 10.0.0.1
 
 
+# Set up an IP for the Infiniband interface
+/usr/local/bin/set_ipoib
+
+
 # Try to load a ZFS filesystem
 zpool import -a || true
 
