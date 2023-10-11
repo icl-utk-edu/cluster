@@ -10,6 +10,7 @@ docker rm $NAME
 
 docker run --name $NAME \
    -d --restart=unless-stopped \
+   --cap-add=NET_ADMIN --cap-add=NET_RAW \
    -v ganglia:/var/lib/ganglia \
    -p 80:80 \
    $NAME
