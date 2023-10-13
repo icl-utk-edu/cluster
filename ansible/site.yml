@@ -10,3 +10,4 @@
           - docker
           - ipa-client
           - ganglia-gmond
+          - zfs

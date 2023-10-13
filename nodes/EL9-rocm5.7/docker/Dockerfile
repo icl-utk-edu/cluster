@@ -134,7 +134,7 @@ RUN dnf -y install ganglia-gmond && \
     systemctl enable gmond
 COPY gmond.conf /etc/ganglia/
 
-RUN dnf -y install tcpdump net-tools lz4
+RUN dnf -y install tcpdump net-tools lz4 man-pages colordiff the_silver_searcher rust
 RUN dnf clean all
 
 

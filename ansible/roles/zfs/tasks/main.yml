@@ -1,5 +1,5 @@
 - name: Install ZFS repo
-  copy: src=zfs.repo dest=/etc/yum.repos.d/zfs.repo
+  command: dnf -y install https://zfsonlinux.org/epel/zfs-release-2-2$(rpm --eval "%{dist}").noarch.rpm
 
 - name: Install ZFS
   yum: name=zfs
