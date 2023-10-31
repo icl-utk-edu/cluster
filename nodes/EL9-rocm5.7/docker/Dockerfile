@@ -97,7 +97,6 @@ COPY docker-daemon.json /etc/docker/daemon.json
 COPY rc.local /etc/rc.d/rc.local
 RUN systemctl enable rc-local
 COPY set_ipoib /usr/local/bin/
-RUN echo enpty /
 
 RUN dnf -y install autofs && \
     systemctl enable autofs && \
@@ -119,8 +118,11 @@ RUN wget -O - https://github.com/zfsonlinux/zfs-auto-snapshot/archive/upstream/1
     cd zfs-auto-snapshot* && \
     make install && \
     cd .. && rm -rf zfs-auto-snapshot* && \
-    ln -s /usr/local/sbin/zfs-auto-snapshot /usr/sbin/
+    ln -s /usr/local/sbin/zfs-auto-snapshot /usr/sbin/ && \
+    rm /etc/cron.monthly/zfs-auto-snapshot && \
+    sed -i 's/\/\//mnt\/apps mnt\/home/' /etc/cron.*/zfs-auto-snapshot
 COPY docker-prune.sh /etc/cron.daily/
+COPY zfs-trim.sh /etc/cron.daily/
 
 RUN echo "%admins ALL=(ALL) ALL" > /etc/sudoers.d/admins
 
@@ -134,7 +136,12 @@ RUN dnf -y install ganglia-gmond && \
     systemctl enable gmond
 COPY gmond.conf /etc/ganglia/
 
-RUN dnf -y install tcpdump net-tools lz4 man-pages colordiff the_silver_searcher rust
+RUN dnf -y install tcpdump net-tools lz4 man-pages colordiff the_silver_searcher rust smartmontools
 RUN dnf clean all
+
+#COPY slurm.sh /etc/rc.d/rc3.d/
+#COPY slurm/*.service /usr/lib/systemd/system/
+#COPY slurm/*.sh /sbin/
+#COPY slurm/*.conf /etc/slurm/
 
 
