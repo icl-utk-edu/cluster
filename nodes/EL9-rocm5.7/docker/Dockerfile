@@ -25,11 +25,14 @@ RUN dnf -y install rsyslog && \
 # Slurm
 RUN dnf -y install epel-release && \
     dnf -y install slurm-slurmd munge pmix-devel
-RUN systemctl enable munge slurmd
+RUN touch /etc/slurm/gres.conf
+RUN echo files /etc/slurm/gres.conf >> /etc/rwtab
+COPY --from=slurm slurm.conf /etc/slurm/
+COPY slurmd.service /usr/lib/systemd/system/
+COPY slurmd_startup /usr/sbin/
+RUN systemctl enable munge
 RUN useradd --no-create-home --system -g daemon --uid 9 slurm
 COPY --from=munge --chown=munge:munge munge.key /etc/munge/
-COPY slurmd.sysconfig /etc/sysconfig/slurmd
-RUN rm -f /etc/slurm/slurm.conf
 
 
 # LDAP for user accounts and authentication
@@ -105,6 +108,7 @@ RUN dnf -y install autofs && \
     mkdir -p /nfs
 COPY auto.nfs /etc/
 
+RUN echo "files /etc/hostname" >> /etc/rwtab
 RUN echo "files /var/lib/systemd" >> /etc/rwtab
 RUN echo "files /root" >> /etc/rwtab
 
@@ -121,8 +125,7 @@ RUN wget -O - https://github.com/zfsonlinux/zfs-auto-snapshot/archive/upstream/1
     ln -s /usr/local/sbin/zfs-auto-snapshot /usr/sbin/ && \
     rm /etc/cron.monthly/zfs-auto-snapshot && \
     sed -i 's/\/\//mnt\/apps mnt\/home/' /etc/cron.*/zfs-auto-snapshot
-COPY docker-prune.sh /etc/cron.daily/
-COPY zfs-trim.sh /etc/cron.daily/
+COPY cron.d /etc/cron.d
 
 RUN echo "%admins ALL=(ALL) ALL" > /etc/sudoers.d/admins
 

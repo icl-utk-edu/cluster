@@ -1,2 +1,4 @@
-SLURMD_OPTIONS="--conf-server headnode"
+FEATURE=$(hostname -s | sed -r 's/[0-9]+//g')
+
+SLURMD_OPTIONS="-Z --conf-server headnode --conf \"Feature=$FEATURE\""
 

@@ -4,10 +4,13 @@ sleep 30
 
 # Ensure hostname is set to local cluster name
 SHORTNAME=`hostname -s`
-FULLNAME=`hostname -f`
-if [[ $FULLNAME =~ "icl.utk.edu" ]]; then
-   hostname $SHORTNAME.cluster
-fi
+hostname $SHORTNAME
+echo $SHORTNAME > /etc/hostname
+
+
+# Start slurmd
+# Needs to be after hostname is correctly set
+systemctl start slurmd
 
 
 # Try to set the default route for login nodes to the external interface
@@ -50,10 +53,6 @@ SWAPDEV=`blkid -t TYPE=swap -o device`
 if [ $SWAPDEV ] ; then
    swapon $SWAPDEV
 fi
-
-
-# Resume processing slurm jobs
-scontrol update nodename=$SHORTNAME state=resume
 
 
 # Relax hardware access limits for PAPI
