@@ -1,0 +1,64 @@
+#!/usr/bin/perl
+
+# Need to create gres.conf with correct GPU config:
+# Name=gpu Type=nvidia File=/dev/nvidia0
+# Name=gpu Type=amd File=/dev/dri/card0
+
+use strict;
+use warnings;
+use Data::Dumper;
+
+my @match = ('radeon vii', 'mi210', 'v100', 'a100', 'h100', 'titan v');
+
+my @cmds = (
+	['nvidia', '/dev/nvidia0', 'nvidia-smi --format=csv,noheader --query-gpu=name'],
+	['amd', '/dev/dri/card0', 'rocm-smi --showproductname --csv'],
+);
+
+my (%gres, %features, @devices);
+for(@cmds){
+	my ($vendor, $dev, $cmd) = @$_;
+	for(`$cmd 2>/dev/null`){
+		my $line = $_;
+		for(@match){
+			my $key = $_;
+			next unless $line =~ /$key/i;
+			my $num = $gres{"gpu:$vendor"}++;
+			$dev =~ s/\d+/$num/;
+			push @devices, "Name=gpu Type=$vendor File=$dev\n";
+			(my $feature = "gpu_$key") =~ s/\s+//;
+			$features{$feature}++;
+		}
+	}
+}
+
+
+open(OUT, '+>/etc/slurm/gres.conf') or die $!;
+flock(OUT, 2) or die $!;
+print OUT @devices;
+close OUT;
+
+
+my $config = `slurmd -C | grep NodeName`;
+chomp $config;
+$config =~ s/NodeName=(\S+)//;
+my $nodename = $1;
+if($config =~ s/ThreadsPerCore=2/ThreadsPerCore=1/){
+	$config =~ /CPUs=(\d+)/;
+	my $cpus = $1 / 2;
+	$config =~ s/CPUs=\d+/CPUs=$cpus/;
+}
+
+my ($nodeset) = $nodename =~ /^([a-z]+)/;
+$features{$nodeset} = 1;
+
+if(keys %gres){
+	$config .= ' Gres=' . join(',', map {"$_:$gres{$_}"} keys %gres);
+	$config .= ' Feature=' . join(',', keys %features);
+}
+
+`scontrol delete node $nodename`;
+
+print "Config: $config\n";
+exec('/usr/sbin/slurmd', '-D', '-s', '-Z', '--conf', $config);
+
