@@ -63,9 +63,9 @@ fi
 
 
 # Start the NV daemon if the nvidia module is loaded
-awk '{print $1}' /proc/modules | grep '^nvidia$' && \
-	systemctl start nvidia-persistenced && \
-	systemctl start nvidia-fabricmanager
+#awk '{print $1}' /proc/modules | grep '^nvidia$' && \
+#	systemctl start nvidia-persistenced && \
+#	systemctl start nvidia-fabricmanager
 
 # Do everything else
 for script in $(find /etc/rc.d/rc3.d -type f | sort);do

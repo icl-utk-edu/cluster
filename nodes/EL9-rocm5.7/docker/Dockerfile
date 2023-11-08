@@ -12,6 +12,7 @@ RUN dnf -y install openssh-server && \
 RUN ssh-keygen -N '' -f /root/.ssh/id_rsa
 COPY sshd_custom.conf /etc/ssh/sshd_config.d/
 COPY --from=etc ssh/ssh_known_hosts /etc/ssh/
+RUN systemctl disable sshd-keygen@ed25519 sshd-keygen@ecdsa
 COPY authorized_keys /root/.ssh/authorized_keys
 RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 
@@ -64,6 +65,7 @@ RUN dnf -y install kernel kernel-devel dracut-network rpcbind nfs-utils dkms Net
 COPY cuda.repo /etc/yum.repos.d/
 RUN dnf -y install cuda-11.8.0 cuda-drivers-fabricmanager kmod-nvidia-latest-dkms
 RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
+RUN systemctl enable nvidia-persistenced nvidia-fabricmanager
 
 COPY rocm.repo /etc/yum.repos.d/
 #RUN dnf -y install rocm-smi-lib amdgpu-dkms
