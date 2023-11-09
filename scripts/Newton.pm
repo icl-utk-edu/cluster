@@ -516,13 +516,13 @@ sub add_address {
   my $db = db();
   my ($system_exists) = $db->selectrow_array('SELECT name FROM systems WHERE name=?', undef, $system);
   $db->do(
-    'INSERT INTO addresses (name,ip,mac,type,system) VALUES (?,?,?,?,?)',
-    undef, $name, addr2i($ip), addr2i($mac), $type, $system,
+    'INSERT INTO addresses (name,ip,mac,type) VALUES (?,?,?,?)',
+    undef, $name, addr2i($ip), addr2i($mac), $type,
     );
   unless(defined $system_exists){
     $db->do('INSERT INTO systems (name) VALUES (?)', undef, $name);
-    $db->do('UPDATE addresses SET system=name WHERE name=?', undef, $name);
-    }
+  }
+  $db->do('UPDATE addresses SET system=name WHERE name=?', undef, $name);
   }
 
 sub sudo {
@@ -536,7 +536,7 @@ sub sudo {
 sub node_install {
   node_install_dnsmasq();
   node_install_pxe();
-  Newton::Slurm::create_config('/etc/slurm/cluster.conf');
+  #Newton::Slurm::create_config('/etc/slurm/cluster.conf');
   # Nagios
   # Ganglia
   }
