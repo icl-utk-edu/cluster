@@ -54,6 +54,8 @@ $features{$nodeset} = 1;
 
 if(keys %gres){
 	$config .= ' Gres=' . join(',', map {"$_:$gres{$_}"} keys %gres);
+}
+if(keys %features){
 	$config .= ' Feature=' . join(',', keys %features);
 }
 
