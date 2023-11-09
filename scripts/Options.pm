@@ -2,15 +2,15 @@ package Options;
 
 use strict;
 use warnings;
-use Getopt::Long ();
+use Getopt::Long qw(:config require_order);
 use Data::Dumper;
 use Exporter;
 use vars qw(@ISA @EXPORT);
 
 @ISA         = qw(Exporter);
-@EXPORT      = qw(GetOptions);
+@EXPORT      = qw(Options);
 
-sub GetOptions {
+sub Options {
   Getopt::Long::Configure("bundling");
   my @options;
   my $help = shift;

@@ -2,14 +2,13 @@
 
 use strict;
 use warnings;
-#use Getopt::Long;
 use lib "/newton/scripts";
 use Options;
 use Newton;
 use Data::Dumper;
 
 my @argv_orig = @ARGV;
-my %opt = GetOptions(help());
+my %opt = Options(help());
 
 Newton::sudo(@argv_orig) if $opt{root};
 
