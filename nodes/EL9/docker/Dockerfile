@@ -60,9 +60,10 @@ RUN dnf -y group install development debugging infiniband
 RUN dnf -y install zsh vim neovim tmux screen man emacs-nox xauth rsync java-11-openjdk sudo
 
 # Install kernel
-#COPY kernel/RPMS/* /tmp/
-#RUN dnf -y install /tmp/*.rpm && rm -rf /tmp/*.rpm
-RUN dnf -y install kernel kernel-devel dracut-network rpcbind nfs-utils dkms NetworkManager
+ENV KVER=6.1.62-1.el9.elrepo.x86_64
+COPY elrepo.repo /etc/yum.repos.d/
+RUN dnf  -y install kernel-lt-$KVER kernel-lt-devel-$KVER
+RUN dnf -y install dracut-network rpcbind nfs-utils dkms NetworkManager
 # Install CUDA
 COPY cuda.repo /etc/yum.repos.d/
 RUN dnf -y install cuda-11.8.0 cuda-drivers-fabricmanager kmod-nvidia-latest-dkms
@@ -70,19 +71,17 @@ RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprob
 RUN systemctl enable nvidia-persistenced nvidia-fabricmanager
 
 COPY rocm.repo /etc/yum.repos.d/
-#RUN dnf -y install rocm-smi-lib amdgpu-dkms
 RUN dnf -y --enablerepo=crb install perl-File-BaseDir perl-URI-Encode
 RUN dnf -y install amdgpu-dkms rocm-hip-sdk rocm-dkms hip-nvcc rocprim rocm-ml-sdk rocm-openmp-sdk rocm-opencl-sdk rocm-developer-tools
-# Removed in 5.7: rocmtools-dev
 
 RUN dnf -y install https://zfsonlinux.org/epel/zfs-release-2-2$(rpm --eval "%{dist}").noarch.rpm
 RUN dnf -y install zfs
 RUN mkdir -p /apps /data
 
 # Build kernel modules
-RUN dkms autoinstall -k `rpm -q kernel | sed 's/kernel-//'` && dkms status
+RUN dkms autoinstall -k $KVER && dkms status
 # Build initrd
-RUN dracut --force --add nfs --no-hostonly --kver `rpm -q kernel | sed 's/kernel-//'`
+RUN dracut --force --add nfs --no-hostonly --kver $KVER 
 RUN chmod 644 /boot/initramfs*.img
 RUN ls /lib/modules | xargs -Iggg cp /lib/modules/ggg/vmlinuz /boot/vmlinuz-ggg
 
@@ -146,9 +145,5 @@ COPY gmond.conf /etc/ganglia/
 RUN dnf -y install tcpdump net-tools lz4 man-pages colordiff the_silver_searcher rust smartmontools
 RUN dnf clean all
 
-#COPY slurm.sh /etc/rc.d/rc3.d/
-#COPY slurm/*.service /usr/lib/systemd/system/
-#COPY slurm/*.sh /sbin/
-#COPY slurm/*.conf /etc/slurm/
 
 

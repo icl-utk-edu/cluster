@@ -1,0 +1,5 @@
+[elrepo-kernel-archive]
+name=ELRepo kernel archive
+baseurl=http://linux-mirrors.fnal.gov/linux/elrepo/archive/kernel/el9/x86_64
+enabled=1
+gpgcheck=0

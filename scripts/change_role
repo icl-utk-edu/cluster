@@ -7,21 +7,20 @@ use Getopt::Long;
 
 my $basedir = Newton::basedir();
 
-my ($name, $nodeset);
+my ($name, $nodeset, $default);
 my $ok = GetOptions(
   'name|node=s' => \$name,
   'nodeset=s' => \$nodeset,
+  'default' => \$default,
   );
 
-unless($ok and (defined $name or defined $nodeset)){
-  die "Usage: $0 [ --name | --nodeset ] <query> [ <role> ]\n"
+unless($ok and (defined $name or defined $nodeset or defined $default)){
+  die "Usage: $0 [ --name <name> | --nodeset <nodeset> | --default] [<role>]\n"
   }
 
-my ($role) = @ARGV;
+my $role = shift @ARGV;
 
 my $db = Newton::db();
-$db->{AutoCommit} = 1;
-$db->{RaiseError} = 1;
 
 my $where = defined $name ? "name='$name'" : "nodeset='$nodeset'";
 
@@ -39,13 +38,8 @@ if(not defined $role){
 die "Role $role is not available.\n"
   unless -e "$basedir/nodes/$role/config.ipxe";
 
-my $nodes = $db->selectcol_arrayref(
-  "SELECT name FROM addresses WHERE $where",
-  );
-die "Node specification does not exist.\n" unless @$nodes;
-
-$db->do('UPDATE addresses SET role=? WHERE name=?', undef, $role, $_) 
-  for @$nodes;
+die "Node specification does not exist.\n"
+  unless $db->do("UPDATE addresses SET role=? WHERE $where", undef, $role) > 0;
 
 Newton::node_install_pxe();
 
