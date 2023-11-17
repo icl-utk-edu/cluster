@@ -12,6 +12,9 @@
 - name: Remove docker group (is provided by ipa/ldap)
   group: name=docker local=yes state=absent
 
+- name: Setup docker daemon config
+  copy: src=daemon.json dest=/etc/docker/
+
 - name: Enable docker service
   service: name=docker state=started enabled=yes
 

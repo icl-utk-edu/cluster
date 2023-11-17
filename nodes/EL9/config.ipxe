@@ -1,5 +1,5 @@
 #!ipxe
 
-initrd /EL9-kernelML/initrd
-chain /EL9-kernelML/kernel initrd=initrd root=nfs:10.0.0.1:/cluster/nodes/EL9-kernelML/rootfs ip=dhcp ipmi_si.force_kipmid=0 numa_balancing=disable
+initrd /EL9/initrd
+chain /EL9/kernel initrd=initrd root=nfs:10.0.0.1:/cluster/nodes/EL9/rootfs ip=dhcp ipmi_si.force_kipmid=0 numa_balancing=disable
 
