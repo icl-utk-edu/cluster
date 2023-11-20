@@ -559,8 +559,9 @@ sub node_install_pxe {
   my $basedir = basedir();
   my @nodes = nodes(type=>'system');
   for(@nodes){
-    my $role = $_->{role};
-    my $config = "$basedir/nodes/$role/config.ipxe";
+    my ($role, $variant) = split('/', $_->{role});
+    $variant ||= 'base';
+    my $config = "${basedir}nodes/$role/images/$variant/config.ipxe";
     unless(defined($role) and -e $config){
       $role = '';
       warn "Warning: Node role '$role' not found!";

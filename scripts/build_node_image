@@ -9,24 +9,29 @@ fi
 set -x
 
 NAME=$1
+VARIANT=${2:-base}
 BASEDIR=$(cluster_basedir)
-DIR=$BASEDIR/nodes/$NAME
+DOCKER=$BASEDIR/nodes/$NAME/docker
+DEST=$BASEDIR/nodes/$NAME/images/$VARIANT
 DATE=`date '+%F-%T'`
-ROOTFS=$DIR/rootfs-$DATE
+ROOTFS=$DEST/rootfs-$DATE
 
-if [[ -z "$NAME" || ! -d $DIR ]]; then
+if [[ -z "$NAME" || ! -d $DOCKER || ! -d $DEST ]]; then
 	echo "Please provide a valid node image name"
 	exit 1
 fi
 
+if [[ -e $DEST/args ]]; then
+   ARGS=$(xargs echo < $DEST/args)
+fi
 
-cd $DIR/docker
 docker build --progress=plain -t temp \
 	--build-context etc=/etc \
 	--build-context munge=/etc/munge/ \
 	--build-context slurm=/etc/slurm/ \
 	--build-context ansible=$BASEDIR/ansible \
-	--build-context common=$BASEDIR/nodes/common .
+	--build-context common=$BASEDIR/nodes/common \
+	$ARGS $DOCKER
 docker remove temp || true
 docker run -it --name temp temp sleep 0
 mkdir -p $ROOTFS

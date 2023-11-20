@@ -15,10 +15,11 @@ my $ok = GetOptions(
   );
 
 unless($ok and (defined $name or defined $nodeset or defined $default)){
-  die "Usage: $0 [ --name <name> | --nodeset <nodeset> | --default] [<role>]\n"
+  die "Usage: $0 [ --name <name> | --nodeset <nodeset> | --default] [<role>] [<variant>]\n"
   }
 
-my $role = shift @ARGV;
+my ($role, $variant) = @ARGV;
+$variant ||= 'base';
 
 my $db = Newton::db();
 
@@ -36,10 +37,10 @@ if(not defined $role){
   }
 
 die "Role $role is not available.\n"
-  unless -e "$basedir/nodes/$role/config.ipxe";
+  unless -e "$basedir/nodes/$role/images/$variant/config.ipxe";
 
 die "Node specification does not exist.\n"
-  unless $db->do("UPDATE addresses SET role=? WHERE $where", undef, $role) > 0;
+  unless $db->do("UPDATE addresses SET role=? WHERE $where", undef, "$role/$variant") > 0;
 
 Newton::node_install_pxe();
 
