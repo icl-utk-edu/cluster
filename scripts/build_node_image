@@ -21,17 +21,15 @@ if [[ -z "$NAME" || ! -d $DOCKER || ! -d $DEST ]]; then
 	exit 1
 fi
 
-if [[ -e $DEST/args ]]; then
-   ARGS=$(xargs echo < $DEST/args)
-fi
-
 docker build --progress=plain -t temp \
+	--ulimit nofile=1024000:1024000 \
 	--build-context etc=/etc \
 	--build-context munge=/etc/munge/ \
 	--build-context slurm=/etc/slurm/ \
 	--build-context ansible=$BASEDIR/ansible \
 	--build-context common=$BASEDIR/nodes/common \
-	$ARGS $DOCKER
+	--build-arg VARIANT=$VARIANT \
+	$DOCKER
 docker remove temp || true
 docker run -it --name temp temp sleep 0
 mkdir -p $ROOTFS

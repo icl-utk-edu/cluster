@@ -1,0 +1,37 @@
+[elrepo-kernel-archive]
+name=ELRepo kernel archive
+baseurl=http://linux-mirrors.fnal.gov/linux/elrepo/archive/kernel/el9/x86_64
+enabled=0
+gpgcheck=0
+
+[RL8]
+name=RockyLinux 8
+baseurl=https://download.rockylinux.org/pub/rocky/8/BaseOS/x86_64/os/
+enabled=0
+gpgcheck=0
+
+[epel8]
+name=Extra Packages for Enterprise Linux 8 - $basearch
+#baseurl=https://download.example/pub/epel/8/Everything/$basearch
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-8&arch=$basearch&infra=$infra&content=$contentdir
+enabled=0
+gpgcheck=0
+
+[centos7]
+name=CentOS-7
+#mirrorlist=http://mirrorlist.centos.org/?release=7&arch=$basearch&repo=updates&infra=$infra
+baseurl=http://mirror.centos.org/centos/7/os/$basearch/
+gpgcheck=0
+
+[centos7-updates]
+name=CentOS-7 - Updates
+#mirrorlist=http://mirrorlist.centos.org/?release=7&arch=$basearch&repo=updates&infra=$infra
+baseurl=http://mirror.centos.org/centos/7/updates/$basearch/
+gpgcheck=0
+
+[epel7]
+name=Extra Packages for Enterprise Linux 7 - $basearch
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch&infra=$infra&content=$contentdir
+enabled=0
+gpgcheck=0
+

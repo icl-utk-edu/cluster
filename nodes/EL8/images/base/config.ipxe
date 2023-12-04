@@ -1,0 +1,5 @@
+#!ipxe
+
+initrd /EL8/images/base
+chain /EL8/images/base/kernel initrd=initrd root=nfs:10.0.0.1:/cluster/nodes/EL8/images/base/rootfs ip=dhcp ipmi_si.force_kipmid=0 numa_balancing=disable
+

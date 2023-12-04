@@ -1,7 +1,8 @@
 FROM rockylinux:9
 
-ARG KPKG=kernel-lt
-ARG KVER=6.1.62-1.el9.elrepo.x86_64
+#ARG KPKG=kernel-lt
+#ARG KVER=6.1.62-1.el9.elrepo.x86_64
+ARG VARIANT=base
 
 # Reinstall because some files (like man pages) aren't installed at first
 RUN dnf -y reinstall \* && dnf -y update
@@ -63,27 +64,29 @@ RUN dnf -y group install development debugging infiniband
 RUN dnf -y install zsh vim neovim tmux screen man emacs-nox xauth rsync java-11-openjdk sudo
 
 # Install kernel
-COPY elrepo.repo /etc/yum.repos.d/
-RUN dnf  -y install $KPKG-$KVER $KPKG-devel-$KVER
-RUN dnf -y install dracut-network rpcbind nfs-utils dkms NetworkManager
+COPY custom.repo /etc/yum.repos.d/
+COPY kernel.sh /tmp/
+RUN /tmp/kernel.sh $VARIANT && rm /tmp/kernel.sh
+RUN dnf -y install dracut-network rpcbind nfs-utils NetworkManager
+
 # Install CUDA
-#COPY cuda.repo /etc/yum.repos.d/
-#RUN dnf -y install cuda-11.8.0 cuda-drivers-fabricmanager kmod-nvidia-latest-dkms
-#RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
-#RUN systemctl enable nvidia-persistenced nvidia-fabricmanager
+COPY cuda.repo /etc/yum.repos.d/
+RUN dnf -y install cuda-11.8.0 cuda-drivers-fabricmanager kmod-nvidia-latest-dkms
+RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
+RUN systemctl enable nvidia-persistenced nvidia-fabricmanager
 
-#COPY rocm.repo /etc/yum.repos.d/
-#RUN dnf -y --enablerepo=crb install perl-File-BaseDir perl-URI-Encode
-#RUN dnf -y install amdgpu-dkms rocm-hip-sdk rocm-dkms hip-nvcc rocprim rocm-ml-sdk rocm-openmp-sdk rocm-opencl-sdk rocm-developer-tools
+COPY rocm.repo /etc/yum.repos.d/
+RUN dnf -y --enablerepo=crb install perl-File-BaseDir perl-URI-Encode
+RUN dnf -y install amdgpu-dkms rocm-hip-sdk rocm-dkms hip-nvcc rocprim rocm-ml-sdk rocm-openmp-sdk rocm-opencl-sdk rocm-developer-tools
 
-#RUN dnf -y install https://zfsonlinux.org/epel/zfs-release-2-2$(rpm --eval "%{dist}").noarch.rpm
-#RUN dnf -y install zfs
+RUN dnf -y install https://zfsonlinux.org/epel/zfs-release-2-2$(rpm --eval "%{dist}").noarch.rpm
+RUN dnf -y install zfs
 RUN mkdir -p /apps /data
 
 # Build kernel modules
-RUN dkms autoinstall -k $KVER && dkms status
+RUN dkms autoinstall -k `cat /boot/kver` && dkms status
 # Build initrd
-RUN dracut --force --add nfs --no-hostonly --kver $KVER 
+RUN dracut --force --add nfs --no-hostonly --kver `cat /boot/kver`
 RUN chmod 644 /boot/initramfs*.img
 RUN ls /lib/modules | xargs -Iggg cp /lib/modules/ggg/vmlinuz /boot/vmlinuz-ggg
 

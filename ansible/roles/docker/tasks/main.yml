@@ -18,10 +18,3 @@
 - name: Enable docker service
   service: name=docker state=started enabled=yes
 
-- name : Cron to periodically clean up docker objects
-  cron:
-    name: "docker"
-    job: "docker system prune -f > /dev/null"
-    minute: 1
-    hour: "1"
-
