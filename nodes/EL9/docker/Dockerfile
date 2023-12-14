@@ -122,7 +122,7 @@ RUN echo "files /root" >> /etc/rwtab
 
 RUN systemctl disable upower
 
-RUN dnf -y install csh zsh sed pciutils gcc-gfortran wget traceroute nmap perl-DBI perl-DBD-SQLite dmidecode cpuid perf mesa-dri-drivers
+RUN dnf -y install csh zsh sed pciutils gcc-gfortran wget traceroute nmap perl-DBI perl-DBD-SQLite dmidecode cpuid perf mesa-dri-drivers subversion
 
 RUN dnf -y install cronie && \
     rm -f /etc/cron.deny
@@ -146,6 +146,8 @@ COPY nfs.conf /etc/
 RUN dnf -y install ganglia-gmond && \
     systemctl enable gmond
 COPY gmond.conf /etc/ganglia/
+
+COPY inventory.sh /etc/cron.daily/
 
 RUN dnf -y install tcpdump net-tools lz4 man-pages colordiff the_silver_searcher rust smartmontools
 RUN dnf clean all

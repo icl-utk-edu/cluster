@@ -1,0 +1,210 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Newton;
+use Options;
+use Data::Dumper;
+
+my $basedir = Newton::basedir();
+
+my $domain = 'cluster';
+
+my %opt = Options(help());
+my $basename = shift @ARGV;
+unless($opt{role} and defined $basename){
+  die help();
+}
+
+my $db = Newton::db();
+checkrole($opt{role});
+
+my $nextnode = nextnode();
+print "Starting with $nextnode\n";
+
+$SIG{INT} = "finish";
+
+my $total = 0;
+my @queue;
+open(LOG, 'journalctl -f -u dnsmasq --since today | ') or die $!;
+while(1){
+   for(nonblockGetLines(*LOG, 1)){
+      next unless /DHCPACK.+\s+([\d\.]+)\s+([[:xdigit:]\:]+)/;
+      my ($ip, $mac) = ($1, $2);
+      push @queue, [time+10, \&check_system, $ip, $mac];
+      push @queue, [time+10, \&check_bmc, $ip, $mac];
+      }
+   run_queue();
+   sleep 1;
+}
+
+sub run_queue {
+   my $num = @queue;
+   for(1..$num){
+      my $element = shift @queue;
+      my ($time, $function, @args) = @$element;
+      if($time < time){
+         &{$function}(@args);
+      } else {
+	 push @queue, $element;
+      }
+   }
+}
+
+# An non-blocking filehandle read that returns an array of lines read
+# Returns:  ($eof,@lines)
+my %nonblockGetLines_last;
+sub nonblockGetLines {
+  my ($fh,$timeout) = @_;
+
+  $timeout = 0 unless defined $timeout;
+  my $rfd = '';
+  $nonblockGetLines_last{$fh} = ''
+		unless defined $nonblockGetLines_last{$fh};
+
+  vec($rfd,fileno($fh),1) = 1;
+  return unless select($rfd, undef, undef, $timeout)>=0;
+	# I'm not sure the following is necessary?
+  return unless vec($rfd,fileno($fh),1);
+  my $buf = '';
+  my $n = sysread($fh,$buf,1024*1024);
+  # If we're done, make sure to send the last unfinished line
+  return ($nonblockGetLines_last{$fh}) unless $n;
+	# Prepend the last unfinished line
+  $buf = $nonblockGetLines_last{$fh}.$buf;
+	# And save any newly unfinished lines
+  $nonblockGetLines_last{$fh} =
+		(substr($buf,-1) !~ /[\r\n]/ && $buf =~ s/([^\r\n]*)$//)
+			? $1 : '';
+  $buf ? (split(/\n/,$buf)) : ();
+}
+
+sub check_system {
+   my ($ip, $mac) = @_;
+   return unless Newton::ping($ip);
+   my $test = Newton::ssh('uname', $ip);
+   return unless $test =~ /Linux/;
+   $test = Newton::ssh('ipmitool chassis power status', $ip);
+   if($test =~ 'Chassis'){
+      setup_bmc_user($ip);
+      setup_bmc_lan($ip);
+   } else {
+      push @found, [$ip, $mac];
+   }
+}
+
+sub check_bmc {
+   my ($ip, $mac) = @_;
+   return unless Newton::ping($ip);
+}
+
+sub setup_bmc_user {
+   my $ip = shift;
+   my ($channel, $uid) = find_ipmi_user_info($ip);
+   unless(defined $uid){
+      Newton::ssh("ipmitool user set name 5 $Newton::IPMIUSER", $ip);
+      Newton::ssh("ipmitool user priv 5 0x4 1", $ip);
+      Newton::ssh("ipmitool user enable 5", $ip);
+      ($channel, $uid) = find_ipmi_user_info($ip);
+      unless(defined $uid){
+         warn "No user ID found for $Newton::IPMIUSER at $ip";
+         return;
+      }
+   }
+   Newton::ssh("ipmitool channel setaccess $channel $uid link=off callin=off ipmi=on privilege=0x4", $ip);
+   Newton::ssh("ipmitool lan set 1 access on", $ip);
+   print Newton::ssh("ipmitool user set password $uid $new_pw 16", $ip);
+}
+
+sub setup_bmc_lan {
+   my $ip = shift;
+   my $bmcinfo = bmc_lan_info($ip);
+   if 
+   
+   # Set IP address source to DHCP
+   for(0..10){
+      my $ch = $_;
+      next unless Newton::ssh("ipmitool lan print $ch", $ip) > 2;
+      print Newton::ssh("ipmitool lan set $ch ipsrc dhcp", $ip);
+      print Newton::ssh('ipmitool mc reset warm', $ip);
+      last;
+   }
+}
+
+sub bmc_lan_info {
+   my $sys_ip = shift;
+   my @info = Newton::ssh("ipmitool lan print", $sys_ip);
+   my ($ip, $ipsrc, $mac);
+   for(@info){
+      $ip = $1 if /ip address\s*:\s*([\d\.]+)/i;
+      $ipsrc = $1 if /ip address source\s*:\s*(\S+)/i;
+      $mac = $1 if /mac address\s*:\s*(\S+)/i;
+   }
+   return {ip=>$ip, ipsrc=>$ipsrc, mac=>$mac};
+}
+
+sub find_ipmi_user_info {
+  my $ip = shift;
+  my ($channel, $uid);
+  for(1..10){
+    $channel = $_;
+    my @info = Newton::ssh("ipmitool user list $channel", $ip);
+    ($uid) = map {$_->[0]}
+                grep {$_->[1] eq $Newton::IPMIUSER}
+                grep { defined $_->[5] }
+                map {chomp; [split /\s+/]} @info;
+    last if defined $uid;
+  }
+  return ($channel, $uid);
+}
+
+sub finish {
+  print "Finishing...\n";
+  close LOG;
+  print "Total of $total new nodes detected.\n";
+  #Newton::node_install() unless $opt{dryrun};
+  exit;
+  }
+
+sub nextnode {
+  my $base = $basename;
+  return $basename unless $base =~ s/\d+$/\%/;;
+  my $systems = $db->selectcol_arrayref(
+    'SELECT name FROM systems WHERE name LIKE ?', undef, $base,
+    );
+  my ($max) = sort {$b<=>$a} map {/(\d+)/;$1} @$systems;
+  return $basename unless defined $max;
+  $max++;
+  my $len = length($max);
+  (my $next = $basename) =~ s/\d{$len}$/$max/;
+  return $next;
+  }
+
+sub taken {
+  my ($key, $value) = @_;
+  my ($taken) = $db->selectrow_array(
+    "SELECT count(*) FROM addresses WHERE $key=?",
+    undef, $value,
+    );
+  return $taken;
+  }
+
+sub checkrole {
+  my $role = shift;
+  help("Role $role doesn't exist") unless -d "$basedir/nodes/$role"; 
+  }
+
+sub help {
+  my $msg = shift || '';
+  return <<End
+${msg}Find new nodes and put them into the node database.
+Usage:  detect_nodes [options] <nodename>
+
+Options include:
+        -r, --role=s    - Node role
+        -d, --dryrun    - Don't make any changes
+        -h, --help      - Show this message
+End
+;
+  }
+

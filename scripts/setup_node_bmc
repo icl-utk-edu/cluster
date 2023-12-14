@@ -16,16 +16,13 @@ Newton::sudo();
 my $node = shift @ARGV;
 my $db = Newton::db();
 my $new_pw = Newton::bmc_passwd();
-print "New BMC password is '$new_pw'\n";
+print "Setting BMC password to '$new_pw'\n";
 my $old_pw  = $ENV{BMC_PASSWD} || Newton::get_passwd('Old BMC password');
 
 $node ||= '';
-my $systems = $db->selectall_arrayref(
-	'SELECT system,ip FROM addresses WHERE system like ? and type="bmc"',
-	undef, "$node\%",
-    );
+my $systems = get_systems("$node\%");
 
-print "Changing BMC passwords for the following systems: ";
+print "Setting up BMC on the following systems: ";
 print join(' ', map {$_->[0]} @$systems);
 print ".  Press <ENTER> to continue.\n";
 <>;
@@ -48,6 +45,17 @@ for(@$systems){
   cmd("channel setaccess $channel $uid link=off callin=off ipmi=on privilege=0x4", @param);
   cmd("lan set 1 access on", @param);
   print cmd("user set password $uid $new_pw 16", @param);
+
+  # Set IP address source to DHCP
+  for(0..10){
+    my $ch = $_;
+    next unless cmd("lan print $ch", @param) > 2;
+    print cmd("lan set $ch ipsrc dhcp", @param);
+    print cmd("mc reset warm", @param);
+    last;
+    }
+  sleep 60;
+
 }
 
 sub find_ipmi_user_info {
@@ -76,4 +84,19 @@ sub cmd {
     @data = Newton::ssh("ipmitool $cmd", $system);
   }
   return @data;
+}
+
+sub get_systems {
+   my $query = shift;
+   my $systems = $db->selectall_arrayref(
+      'SELECT system,ip,type FROM addresses WHERE system like ?',
+      undef, $query,
+      );
+   my %systems;
+   for(@$systems){
+      my ($name, $ip, $type) = @$_;
+      $systems{$name}->{$type} = $ip;
+      }
+   @$systems = map {[$_, $systems{$_}->{bmc}]} keys %systems;
+   return $systems;
 }

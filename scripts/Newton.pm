@@ -449,6 +449,7 @@ sub macaddr { # convert integer to mac address
 
 sub i2addr { # convert integer to decimal octet
   my ($max, $int) = @_;
+  return unless defined $max and defined $int;
   return map {($int >> 8*$_) % 256} reverse (0..$max);
   }
 
