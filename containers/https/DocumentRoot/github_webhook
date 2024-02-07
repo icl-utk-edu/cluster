@@ -1,0 +1,13 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use CGI;
+use JSON 'decode_json';
+use Data::Dumper;
+
+my $cgi = CGI->new();
+
+my $payload = decode_json $cgi->param('payload');
+print $cgi->header();
+print Dumper($payload);
