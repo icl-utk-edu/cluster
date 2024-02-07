@@ -14,6 +14,7 @@ Important
 
 Later
 -----
+- Use autofs for home and apps mount to increase resiliency
 - Restart jenkins runners
 - Add bmcinterface to addresses table
 - Move troy, orbitty, adrenochrome into cluster

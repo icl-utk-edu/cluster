@@ -34,28 +34,60 @@ for(@$systems){
   my ($channel, $uid) = find_ipmi_user_info(@param);
   unless(defined $uid){
     cmd("user set name 5 $Newton::IPMIUSER", @param);
-    cmd("user priv 5 0x4 1", @param);
     cmd("user enable 5", @param);
     ($channel, $uid) = find_ipmi_user_info(@param);
     unless(defined $uid){
        warn "No user ID found for $Newton::IPMIUSER at $system";
        next;
     }
+    cmd("user priv 5 0x4 $channel", @param);
   }
   cmd("channel setaccess $channel $uid link=off callin=off ipmi=on privilege=0x4", @param);
-  cmd("lan set 1 access on", @param);
+  cmd("lan set $channel access on", @param);
   print cmd("user set password $uid $new_pw 16", @param);
 
-  # Set IP address source to DHCP
-  for(0..10){
-    my $ch = $_;
-    next unless cmd("lan print $ch", @param) > 2;
-    print cmd("lan set $ch ipsrc dhcp", @param);
+  my ($bmc_ip, $bmc_mac) = check_bmc_ip($channel, @param);
+  if(not defined $bmc_ip){
+    print cmd("lan set $channel ipsrc dhcp", @param);
     print cmd("mc reset warm", @param);
-    last;
+    sleep 60;
+    ($bmc_ip, $bmc_mac) = check_bmc_ip($channel, @param);
     }
-  sleep 60;
+  next if defined $bmc; # already in the DB
+  if(defined $bmc_ip){
+    warn "Adding BMC IP $bmc_ip to $system\n";
+    (my $name_bmc = $system) =~ s/(\.[^\.]+)$/-bmc$1/;
+    Newton::add_address($name_bmc, $bmc_ip, $bmc_mac, 'bmc', $system);
+  } else {
+    warn "No BMC IP found for $system";
+  }
+}
 
+sub check_bmc_ip {
+  my ($channel, @param) = @_;
+  my ($system, $bmc) = @param;
+  my @info = cmd("lan print $channel", @param);
+  my $bmc_mac = extract_ipmi("MAC Address", @info);
+  return unless defined $bmc_mac;
+  my $addr_src = extract_ipmi("IP Address Source", @info);
+  return unless $addr_src =~ /DHCP/;
+  my $bmc_ip = extract_ipmi("IP Address", @info);
+  if(defined $bmc_ip and defined $bmc and $bmc_ip ne $bmc){
+    warn "Warning: BMC IP doesn't match database value '$bmc' != '$bmc_ip'";
+    return;
+  }
+  return unless defined $bmc_ip and Newton::ping($bmc_ip);
+  return $bmc_ip, $bmc_mac;
+}
+
+sub extract_ipmi {
+  my ($search, @data) = @_;
+  for(@data){
+    chomp;
+    my ($field, $value) = /^(.+?)\s*:\s*(.+)$/;
+    next unless defined $field;
+    return $value if $field eq $search;
+  }
 }
 
 sub find_ipmi_user_info {
@@ -97,6 +129,6 @@ sub get_systems {
       my ($name, $ip, $type) = @$_;
       $systems{$name}->{$type} = $ip;
       }
-   @$systems = map {[$_, $systems{$_}->{bmc}]} keys %systems;
+   @$systems = map {[$_, $systems{$_}->{bmc}]} sort {$a cmp $b} keys %systems;
    return $systems;
 }

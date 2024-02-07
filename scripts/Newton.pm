@@ -440,7 +440,9 @@ sub userinfo {
   }
 
 sub ipaddr { # convert integer to ip address
-  return join('.', i2addr(3,shift));
+  my $num = shift;
+  return unless defined $num;
+  return join('.', i2addr(3, $num));
   }
 
 sub macaddr { # convert integer to mac address
@@ -523,7 +525,7 @@ sub add_address {
   unless(defined $system_exists){
     $db->do('INSERT INTO systems (name) VALUES (?)', undef, $name);
   }
-  $db->do('UPDATE addresses SET system=name WHERE name=?', undef, $name);
+  $db->do('UPDATE addresses SET system=? WHERE name=?', undef, $system, $name);
   }
 
 sub sudo {

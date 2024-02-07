@@ -25,13 +25,13 @@ COPY nftables.conf /etc/sysconfig/
 
 #RUN dnf -y group install development debugging
 
-#RUN dnf -y install https://repo.download.nvidia.com/baseos/el/el-files/8/nvidia-repo-setup-21.06-1.el8.x86_64.rpm
-#RUN dnf -y group install -y 'DGX A100 Configurations'
-#RUN dnf module install -y nvidia-driver:470/{fm,src}
-#RUN dnf install -y nv-persistence-mode nvidia-fm-enable nvidia-conf-xconfig nv-docker-gpus
-#RUN which nvsm
+RUN dnf -y install https://repo.download.nvidia.com/baseos/el/el-files/8/nvidia-repo-setup-21.06-1.el8.x86_64.rpm
+RUN dnf -y group install -y 'DGX A100 Configurations'
+RUN dnf module install -y nvidia-driver:470/{fm,src}
+RUN dnf install -y nv-persistence-mode nvidia-fm-enable nvidia-conf-xconfig nv-docker-gpus
+RUN which nvsm
 
-RUN dnf -y install epel-release screen
+RUN dnf -y install epel-release
 
 # Install kernel
 RUN dnf -y install kernel kernel-devel dracut-network rpcbind nfs-utils dkms NetworkManager
@@ -50,7 +50,7 @@ RUN echo "files /root" >> /etc/rwtab
 
 RUN dnf -y install vim csh zsh sed pciutils gcc-gfortran wget dmidecode rsync openssh-clients
 # Podman for NV firmware update container
-RUN dnf -y install podman
+#RUN dnf -y install podman
 RUN dnf clean all
 
 RUN /usr/libexec/openssh/sshd-keygen rsa

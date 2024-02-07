@@ -31,6 +31,7 @@
           - bind-utils
           - vim
           - pciutils
+          - sendmail
 
 # Using docker for node image building instead
 #- name: Configure dracut for creating pxe boot image
@@ -48,6 +49,7 @@
           - DBD-SQLite
           - Time-HiRes
           - File-Copy
+          - MailTools
 
 - name: Configure rsyslog collector
   copy: src=rsyslog.d-collector dest=/etc/rsyslog.d/collector.conf
