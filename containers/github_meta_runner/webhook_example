@@ -1,0 +1,76 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use CGI;
+use JSON 'decode_json';
+use Data::Dumper;
+
+my $cgi = CGI->new();
+
+my $payload = decode_json $cgi->param('payload');
+print $cgi->header();
+print Dumper($payload);
+
+__END__
+
+Webhook payload from github for queued job:
+
+$VAR1 = {
+          'organization' => {
+                              'avatar_url' => 'https://avatars.githubusercontent.com/u/70462541?v=4',
+                              'node_id' => 'MDEyOk9yZ2FuaXphdGlvbjcwNDYyNTQx',
+                              'hooks_url' => 'https://api.github.com/orgs/icl-utk-edu/hooks',
+                              'url' => 'https://api.github.com/orgs/icl-utk-edu',
+                              'id' => 70462541,
+                              'issues_url' => 'https://api.github.com/orgs/icl-utk-edu/issues',
+                              'description' => '',
+                              'members_url' => 'https://api.github.com/orgs/icl-utk-edu/members{/member}',
+                              'login' => 'icl-utk-edu',
+                              'public_members_url' => 'https://api.github.com/orgs/icl-utk-edu/public_members{/member}',
+                              'repos_url' => 'https://api.github.com/orgs/icl-utk-edu/repos',
+                              'events_url' => 'https://api.github.com/orgs/icl-utk-edu/events'
+                            },
+          'action' => 'queued',
+          'workflow_job' => {
+                              'html_url' => 'https://github.com/icl-utk-edu/slate/actions/runs/7778507517/job/21339320809',
+                              'run_id' => 7778507517,
+                              'completed_at' => undef,
+                              'runner_name' => undef,
+                              'node_id' => 'CR_kwDOHeLCs88AAAAE9-wx6Q',
+                              'check_run_url' => 'https://api.github.com/repos/icl-utk-edu/slate/check-runs/21339320809',
+                              'steps' => [],
+                              'labels' => [
+                                            'cpu'
+                                          ],
+                              'head_branch' => 'matgen',
+                              'started_at' => '2024-02-07T22:03:26Z',
+                              'run_url' => 'https://api.github.com/repos/icl-utk-edu/slate/actions/runs/7778507517',
+                              'workflow_name' => 'CI',
+                              'created_at' => '2024-02-07T22:03:26Z',
+                              'runner_group_name' => undef,
+                              'id' => '21339320809',
+                              'head_sha' => '9415f4918ff71a6b19dd528a13987ffd7cdbc614',
+                              'conclusion' => undef,
+                              'name' => 'icl_slate (make, cpu)',
+                              'run_attempt' => 2,
+                              'runner_id' => undef,
+                              'url' => 'https://api.github.com/repos/icl-utk-edu/slate/actions/jobs/21339320809',
+                              'status' => 'queued',
+                              'runner_group_id' => undef
+                            },
+          'repository' => {
+                            'contributors_url' => 'https://api.github.com/repos/icl-utk-edu/slate/contributors',
+                            'disabled' => bless( do{\(my $o = 0)}, 'JSON::PP::Boolean' ),
+                            'labels_url' => 'https://api.github.com/repos/icl-utk-edu/slate/labels{/name}',
+                            'git_url' => 'git://github.com/icl-utk-edu/slate.git',
+                            'id' => 501400243,
+                            'svn_url' => 'https://github.com/icl-utk-edu/slate',
+                            'private' => $VAR1->{'repository'}{'disabled'},
+                            'forks_count' => 18,
+                            'comments_url' => 'https://api.github.com/repos/icl-utk-edu/slate/comments{/number}',
+                            'deployments_url' => 'https://api.github.com/repos/icl-utk-edu/slate/deployments',
+                            'homepage' => 'https://icl.utk.edu/slate/',
+                            'statuses_url' => 'https://api.github.com/repos/icl-utk-edu/slate/statuses/{sha}',
+                            'trees_url' => 'https:
+

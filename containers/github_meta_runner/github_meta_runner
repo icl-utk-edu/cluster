@@ -1,0 +1,65 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+MyWebServer->new(80)->run();
+
+
+package MyWebServer;
+
+use strict;
+use warnings;
+use HTTP::Server::Simple::CGI;
+use base qw(HTTP::Server::Simple::CGI);
+use JSON 'decode_json';
+
+
+sub handle_request {
+   my $self = shift;
+   my $cgi  = shift;
+   my ($message, $code) = response($cgi);
+   print "HTTP/1.0 $code\r\n";
+   print $cgi->header();
+   print $message;
+}
+
+sub response {
+   my $cgi = shift;
+   my $raw = $cgi->param('payload') || return 'error';
+   my $payload = decode_json($raw) || return 'error';
+   my $org = $payload->{organization}->{login};
+   my $action = $payload->{action};
+   return('ignoring', 200) unless $action eq 'queued';
+   my $job = $payload->{workflow_job};
+   return('job not found', 501) unless defined $job and ref($job);
+   my $labels = $job->{labels};
+   return('no labels found', 501) unless defined $labels and ref($labels);
+   my ($slurm_label) = grep /^slurm/, @$labels;
+   return('ignoring', 200) unless defined $slurm_label;
+
+   my $slurm_request = generate_slurm_request($slurm_label);
+   my $ans = `sbatch $slurm_request /opt/github_ephemeral.sbatch $org $slurm_label 2>&1`;
+   if($ans =~ /Submitted batch job \d+/){
+      return("$ans ($slurm_request)", 200);
+   } else {
+      return("Error submitting job for ($slurm_request)\n$ans", 501);
+   }
+}
+
+sub generate_slurm_request {
+   my (undef, $params) = split(/\:/, shift);
+   my @list = split(/\+/, $params);
+   my @out;
+   for(@list){
+      if(/gpu_(\w+)/){
+	 push @out, "--gres gpu:$1";
+      }
+      if(/^(cpu_\w+)$/){
+	 push @out, "-F $1";
+      }
+   }
+   return join(' ', @out);
+}
+
+1;
