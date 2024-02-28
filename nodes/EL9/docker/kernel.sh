@@ -18,6 +18,10 @@ if [[ $VARIANT = 'kernel66' ]]; then
    KVER=6.6.1-1.el9.elrepo.x86_64
    dnf -y --enablerepo=elrepo-kernel-archive install kernel-ml-$KVER kernel-ml-devel-$KVER
 fi
+if [[ $VARIANT = 'kernel-stock' ]]; then
+   dnf -y install kernel kernel-devel
+   KVER=`rpm -q kernel | sed 's/kernel-//'`
+fi
 if [[ $VARIANT = 'base' ]]; then
    KVER=6.1.62-1.el9.elrepo.x86_64
    dnf -y --enablerepo=elrepo-kernel-archive install kernel-lt-$KVER kernel-lt-devel-$KVER

@@ -69,6 +69,21 @@ COPY kernel.sh /tmp/
 RUN /tmp/kernel.sh $VARIANT && rm /tmp/kernel.sh
 RUN dnf -y install dracut-network rpcbind nfs-utils NetworkManager
 
+
+# Install Intel GPU support
+COPY intel-gpu.repo /etc/yum.repos.d/
+# The intel driver will so far only with with the stock kernel
+RUN dnf -y install intel-fw-gpu intel-i915-dkms xpu-smi
+RUN dnf -y install intel-opencl intel-media intel-mediasdk libmfxgen1 libvpl2 \
+  level-zero intel-level-zero-gpu mesa-dri-drivers mesa-vulkan-drivers \
+  mesa-vdpau-drivers libdrm mesa-libEGL mesa-libgbm mesa-libGL \
+  mesa-libxatracker libvpl-tools intel-metrics-discovery \
+  intel-metrics-library intel-igc-core intel-igc-cm \
+  libva libva-utils intel-gmmlib libmetee intel-gsc intel-ocloc \
+  intel-igc-opencl-devel level-zero-devel intel-gsc-devel libmetee-devel level-zero-devel \
+  hwinfo clinfo
+
+
 # Install CUDA
 COPY cuda.repo /etc/yum.repos.d/
 RUN dnf -y install cuda-11.8.0 cuda-drivers-fabricmanager kmod-nvidia-latest-dkms
@@ -84,6 +99,7 @@ RUN dnf -y install zfs
 RUN mkdir -p /apps /data
 
 # Build kernel modules
+RUN cat /boot/kver
 RUN dkms autoinstall -k `cat /boot/kver` && dkms status
 # Build initrd
 RUN dracut --force --add nfs --no-hostonly --kver `cat /boot/kver`
@@ -119,8 +135,6 @@ COPY auto.nfs /etc/
 RUN echo "files /etc/hostname" >> /etc/rwtab
 RUN echo "files /var/lib/systemd" >> /etc/rwtab
 RUN echo "files /root" >> /etc/rwtab
-
-RUN systemctl disable upower
 
 RUN dnf -y install csh zsh sed pciutils gcc-gfortran wget traceroute nmap perl-DBI perl-DBD-SQLite dmidecode cpuid perf mesa-dri-drivers subversion
 

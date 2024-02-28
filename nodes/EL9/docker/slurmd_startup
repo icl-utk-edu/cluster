@@ -13,6 +13,7 @@ my @match = ('radeon vii', 'mi210', 'v100', 'a100', 'h100', 'titan v');
 my @cmds = (
 	['nvidia', '/dev/nvidia0', 'nvidia-smi --format=csv,noheader --query-gpu=name'],
 	['amd', '/dev/dri/card0', 'rocm-smi --showproductname --csv'],
+	['intel', '/dev/dri/card0', 'clinfo -l'],
 );
 
 my (%gres, %features, @devices);
@@ -47,6 +48,23 @@ if($config =~ s/ThreadsPerCore=2/ThreadsPerCore=1/){
 	$config =~ /CPUs=(\d+)/;
 	my $cpus = $1 / 2;
 	$config =~ s/CPUs=\d+/CPUs=$cpus/;
+}
+
+# Set "docker" feature if docker is running
+unless(system('docker ps')){
+   $features{docker} = 1;
+}
+
+
+# Set CPU type feature
+open(IN, '/proc/cpuinfo');
+my @cpuinfo = <IN>;
+close IN;
+
+for(qw/AMD Intel POWER9 ARM/){
+	my $arch = $_;
+	my $label = lc("cpu_$arch");
+	$features{$label} = 1 if grep(/$arch/, @cpuinfo);
 }
 
 my ($nodeset) = $nodename =~ /^([a-z]+)/;

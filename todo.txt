@@ -1,4 +1,8 @@
 
+Add "docker" label to slurm executors
+Create slurm feature with "cpu_<type>"
+Set ephemeral runner to be killed if no job is picked up
+
 Before June 1
 -------------
 - Plan for replacement of head/login nodes with omega1

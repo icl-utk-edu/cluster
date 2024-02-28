@@ -19,4 +19,5 @@ print "UPDATE addresses SET mac=$mac_int WHERE name=$name\n";
 
 $db->do('UPDATE addresses SET mac=? WHERE name=?', undef, $mac_int, $name);
 
+Newton::node_install();
 
