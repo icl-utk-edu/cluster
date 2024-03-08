@@ -73,7 +73,7 @@ RUN dnf -y install dracut-network rpcbind nfs-utils NetworkManager
 # Install Intel GPU support
 COPY intel-gpu.repo /etc/yum.repos.d/
 # The intel driver will so far only with with the stock kernel
-RUN dnf -y install intel-fw-gpu intel-i915-dkms xpu-smi
+RUN [ $VARIANT = "kernel-stock" ] && dnf -y install intel-fw-gpu intel-i915-dkms xpu-smi || true
 RUN dnf -y install intel-opencl intel-media intel-mediasdk libmfxgen1 libvpl2 \
   level-zero intel-level-zero-gpu mesa-dri-drivers mesa-vulkan-drivers \
   mesa-vdpau-drivers libdrm mesa-libEGL mesa-libgbm mesa-libGL \

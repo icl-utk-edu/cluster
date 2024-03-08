@@ -42,7 +42,7 @@ for(@$systems){
     }
     cmd("user priv 5 0x4 $channel", @param);
   }
-  cmd("channel setaccess $channel $uid link=off callin=off ipmi=on privilege=0x4", @param);
+  cmd("channel setaccess $channel $uid link=off callin=on ipmi=on privilege=0x4", @param);
   cmd("lan set $channel access on", @param);
   print cmd("user set password $uid $new_pw 16", @param);
 
