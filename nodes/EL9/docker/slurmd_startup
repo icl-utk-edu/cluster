@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Need to create gres.conf with correct GPU config:
+# Creates gres.conf with correct GPU config:
 # Name=gpu Type=nvidia File=/dev/nvidia0
 # Name=gpu Type=amd File=/dev/dri/card0
 
@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 
-my @match = ('radeon vii', 'mi210', 'v100', 'a100', 'h100', 'titan v');
+my @match = ('radeon vii', 'mi210', 'v100', 'a100', 'h100', 'titan v', 'a770');
 
 my @cmds = (
 	['nvidia', '/dev/nvidia0', 'nvidia-smi --format=csv,noheader --query-gpu=name'],
@@ -29,6 +29,7 @@ for(@cmds){
 			push @devices, "Name=gpu Type=$vendor File=$dev\n";
 			(my $feature = "gpu_$key") =~ s/\s+//;
 			$features{$feature}++;
+			$features{"gpu_$vendor"}++;
 		}
 	}
 }
