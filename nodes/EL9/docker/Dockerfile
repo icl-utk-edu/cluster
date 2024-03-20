@@ -72,7 +72,7 @@ RUN dnf -y install dracut-network rpcbind nfs-utils NetworkManager
 
 # Install Intel GPU support
 COPY intel-gpu.repo /etc/yum.repos.d/
-# The intel driver will so far only with with the stock kernel
+# The intel driver will so far only work with the stock kernel
 RUN [ $VARIANT = "kernel-stock" ] && dnf -y install intel-fw-gpu intel-i915-dkms xpu-smi || true
 RUN dnf -y install intel-opencl intel-media intel-mediasdk libmfxgen1 libvpl2 \
   level-zero intel-level-zero-gpu mesa-dri-drivers mesa-vulkan-drivers \
@@ -86,7 +86,8 @@ RUN dnf -y install intel-opencl intel-media intel-mediasdk libmfxgen1 libvpl2 \
 
 # Install CUDA
 COPY cuda.repo /etc/yum.repos.d/
-RUN dnf -y install cuda-11.8.0 cuda-drivers-fabricmanager kmod-nvidia-latest-dkms
+RUN dnf -y module install nvidia-driver:545-dkms
+RUN dnf -y install cuda-11.8.0 cuda-drivers-fabricmanager-545
 RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
 RUN systemctl enable nvidia-persistenced nvidia-fabricmanager
 
@@ -111,7 +112,7 @@ RUN rm /etc/NetworkManager/system-connections/*
 COPY --from=common motd /etc/
 
 RUN dnf -y install environment-modules
-COPY spack.* prompt.sh /etc/profile.d/
+COPY env.* prompt.sh /etc/profile.d/
 
 COPY docker.repo /etc/yum.repos.d/
 RUN groupadd -g 1001 docker

@@ -23,7 +23,7 @@ if [[ $VARIANT = 'kernel-stock' ]]; then
    KVER=`rpm -q kernel | sed 's/kernel-//'`
 fi
 if [[ $VARIANT = 'base' ]]; then
-   KVER=6.1.62-1.el9.elrepo.x86_64
+   KVER=6.1.81-1.el9.elrepo.x86_64
    dnf -y --enablerepo=elrepo-kernel-archive install kernel-lt-$KVER kernel-lt-devel-$KVER
 fi
 

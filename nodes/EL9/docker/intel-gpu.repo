@@ -1,0 +1,13 @@
+[intel-graphics-9.3-unified]
+name=Intel graphics 9.3 unified
+enabled=1
+gpgcheck=1
+baseurl=https://repositories.intel.com/gpu/rhel/9.3/lts/2350/unified/
+gpgkey=https://repositories.intel.com/gpu/intel-graphics.key
+
+[oneAPI]
+name=Intel oneAPI repository
+baseurl=https://yum.repos.intel.com/oneapi
+enabled=0
+gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+
