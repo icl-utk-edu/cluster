@@ -8,20 +8,18 @@ use strict;
 use warnings;
 use Data::Dumper;
 
-my @match = ('radeon vii', 'mi210', 'v100', 'a100', 'h100', 'titan v', 'a770');
-
 my @cmds = (
-	['nvidia', '/dev/nvidia0', 'nvidia-smi --format=csv,noheader --query-gpu=name'],
-	['amd', '/dev/dri/card0', 'rocm-smi --showproductname --csv'],
-	['intel', '/dev/dri/card0', 'clinfo -l'],
+	['nvidia', ['v100', 'a100', 'h100'], '/dev/nvidia0', 'nvidia-smi --format=csv,noheader --query-gpu=name'],
+	['amd', ['radeon vii', 'mi210'], '/dev/dri/card0', 'rocm-smi --showproductname --csv'],
+	['intel', ['a770'], '/dev/dri/card0', 'clinfo -l'],
 );
 
 my (%gres, %features, @devices);
 for(@cmds){
-	my ($vendor, $dev, $cmd) = @$_;
+	my ($vendor, $match, $dev, $cmd) = @$_;
 	for(`$cmd 2>/dev/null`){
 		my $line = $_;
-		for(@match){
+		for(@$match){
 			my $key = $_;
 			next unless $line =~ /$key/i;
 			my $num = $gres{"gpu:$vendor"}++;
@@ -33,7 +31,6 @@ for(@cmds){
 		}
 	}
 }
-
 
 open(OUT, '+>/etc/slurm/gres.conf') or die $!;
 flock(OUT, 2) or die $!;
