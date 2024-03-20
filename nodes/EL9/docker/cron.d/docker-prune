@@ -1,2 +1,2 @@
-01 01 * * * root docker system prune -f
+1 1 1 * * root docker system prune -f
 

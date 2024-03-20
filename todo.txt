@@ -1,8 +1,6 @@
 
-Add "docker" label to slurm executors
-Create slurm feature with "cpu_<type>"
 Set ephemeral runner to be killed if no job is picked up
-Don't configure node GPUs in slurm that don't have compute capability
+Ensure that processes launched by slurm are killed at end of job
 
 Before June 1
 -------------
