@@ -50,15 +50,18 @@ sub response {
 sub generate_slurm_request {
    my (undef, $params) = split(/\:/, shift);
    my @list = split(/\+/, $params);
-   my @out;
+   my (@gres, @const);
+   push @const, 'docker';
    for(@list){
       if(/gpu_(\w+)/){
-	 push @out, "--gres gpu:$1";
+	 push @gres, "gpu:$1";
       }
       if(/^(cpu_\w+)$/){
-	 push @out, "-F $1";
+	 push @const, $1;
       }
    }
+   my @out = ( '-C', join(',', @const) );
+   push(@out, '--gres', join(',', @gres)) if @gres;
    return join(' ', @out);
 }
 

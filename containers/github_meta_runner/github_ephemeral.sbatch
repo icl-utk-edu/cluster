@@ -3,6 +3,7 @@
 #SBATCH -o /tmp/github-slurm-%j.out
 #SBATCH --time 300
 #SBATCH --constraint docker
+#SBATCH --exclusive
 
 echo Starting github runner for org=$1 label=$2
 cd /apps/docker/icl-build-env/

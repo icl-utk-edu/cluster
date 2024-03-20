@@ -1,5 +1,11 @@
 #!/bin/bash -e
 
+if [ $USER != "root" ]; then
+   echo Running as root
+   sudo $0 $@
+   exit
+fi
+
 NAME=github_meta_runner
 
 GITHUB_UID=$(id -u github)
