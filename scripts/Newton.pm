@@ -537,8 +537,9 @@ sub sudo {
   }
 
 sub node_install {
-  node_install_dnsmasq();
-  node_install_pxe();
+	#node_install_dnsmasq();
+	#node_install_pxe();
+  node_install_nagios();
   #Newton::Slurm::create_config('/etc/slurm/cluster.conf');
   # Nagios
   # Ganglia
@@ -574,6 +575,41 @@ sub node_install_pxe {
     my $link = "$basedir/nodes/roles/" . lc($_->{mac});
     `ln -sf $config $link`;
     }
+  }
+
+sub node_install_nagios {
+  my $basedir = basedir();
+  my $db = db();
+  my $hosts = $db->selectall_arrayref(
+  'SELECT a.name,ip,nodeset,a.type,parent FROM addresses a JOIN systems s ON a.system=s.name'
+  );
+  my (%check, %allsets, @out);
+  for(@$hosts){
+    my ($name, $ip, $set, $type, $parent) = @$_;
+    $set ||= 'other';
+    $allsets{$set}++;
+    $allsets{$type}++;
+    if( $check{$name}++ ){
+      warn "Dup: $name\n";
+      $name = "$name-dup$check{$name}";
+      }
+    push @out, {
+	  name => $name,
+	  ip => Newton::ipaddr($ip),
+	  parent => $parent,
+	  notifications_enabled => 1,
+	  hostgroups => "$set,$type",
+          };
+  }
+  my ($fh, $tempfile) = tempfile();
+  tmpl(
+	  "${basedir}scripts/tmpl/nagios_hosts.cfg",
+	  $tempfile,
+	  hosts => \@out,
+	  groups => [map {{name=>$_}} keys %allsets],
+  );
+  `sudo cp $tempfile ${basedir}containers/nagios/conf.d/nodes.cfg`;
+  `sudo killall -s HUP nagios`;
   }
 
 1;

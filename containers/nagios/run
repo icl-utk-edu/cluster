@@ -1,0 +1,17 @@
+#!/bin/bash -e
+
+NAME=nagios
+
+docker build -t $NAME .
+{
+docker stop $NAME
+docker rm $NAME
+} || true
+
+docker run --name $NAME \
+   -d --restart=unless-stopped \
+   --net=web \
+   -v nagios:/var/spool/nagios \
+   -v `pwd`/conf.d:/etc/nagios/conf.d \
+   $NAME
+

@@ -32,7 +32,7 @@ RUN dnf -y install epel-release && \
     dnf -y install slurm-slurmd munge pmix-devel
 RUN touch /etc/slurm/gres.conf
 RUN echo files /etc/slurm/gres.conf >> /etc/rwtab
-COPY --from=slurm slurm.conf /etc/slurm/
+COPY --from=slurm slurm.conf cgroup.conf /etc/slurm/
 COPY slurmd.service /usr/lib/systemd/system/
 COPY slurmd_startup /usr/sbin/
 RUN systemctl enable munge
@@ -161,6 +161,16 @@ COPY nfs.conf /etc/
 RUN dnf -y install ganglia-gmond && \
     systemctl enable gmond
 COPY gmond.conf /etc/ganglia/
+
+
+# Nagios
+RUN echo swap load perl \
+    | xargs -n1 | xargs -Iggg echo nagios-plugins-ggg | xargs dnf -y install nrpe
+RUN systemctl enable nrpe
+COPY nrpe.cfg /etc/nagios/
+COPY nrpe_plugins /etc/nagios/plugins
+RUN echo "nrpe ALL = (root) NOPASSWD: /usr/bin/ipmitool sensor" > /etc/sudoers.d/nrpe
+
 
 COPY inventory.sh /etc/cron.daily/
 

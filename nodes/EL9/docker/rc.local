@@ -55,6 +55,9 @@ fi
 
 # Relax hardware access limits for PAPI
 echo -1 > /proc/sys/kernel/perf_event_paranoid
+if [ -e /proc/sys/dev/i915/perf_stream_paranoid ]; then
+  echo 0 > /proc/sys/dev/i915/perf_stream_paranoid
+fi
 if [ -e /proc/sys/kernel/numa_balancing ]; then
   echo 0 > /proc/sys/kernel/numa_balancing
 fi

@@ -74,3 +74,6 @@
 
 - name: Set sudo timeout
   command: echo Defaults timestamp_timeout=60 > /etc/sudoers.d/timeout
+
+- name: Enable sendmail service
+  service: name=sendmail state=started enabled=true

@@ -9,22 +9,23 @@ use warnings;
 use Data::Dumper;
 
 my @cmds = (
-	['nvidia', ['v100', 'a100', 'h100'], '/dev/nvidia0', 'nvidia-smi --format=csv,noheader --query-gpu=name'],
-	['amd', ['radeon vii', 'mi210'], '/dev/dri/card0', 'rocm-smi --showproductname --csv'],
-	['intel', ['a770'], '/dev/dri/card0', 'clinfo -l'],
+	['nvidia', ['v100', 'a100', 'h100'], '/dev/nvidia\d+', 'nvidia_gpu_env', 'nvidia-smi --format=csv,noheader --query-gpu=name'],
+	['amd', ['radeon vii', 'mi210'], '/dev/dri/renderD\d+', 'amd_gpu_env', 'rocm-smi --showproductname --csv'],
+	['intel', ['a770'], '/dev/dri/renderD\d+', 'intel_gpu_env', 'clinfo -l'],
 );
-
 my (%gres, %features, @devices);
 for(@cmds){
-	my ($vendor, $match, $dev, $cmd) = @$_;
+	my ($vendor, $match, $regex, $flags, $cmd) = @$_;
+	(my $glob = $regex) =~ s/\\d\+/*/;
+        my @dev_files = grep /$regex/, glob($glob);
 	for(`$cmd 2>/dev/null`){
 		my $line = $_;
 		for(@$match){
 			my $key = $_;
 			next unless $line =~ /$key/i;
-			my $num = $gres{"gpu:$vendor"}++;
-			$dev =~ s/\d+/$num/;
-			push @devices, "Name=gpu Type=$vendor File=$dev\n";
+			$gres{"gpu:$vendor"}++;
+			my $dev = shift @dev_files;
+			push @devices, "Name=gpu Type=$vendor File=$dev Flags=$flags\n";
 			(my $feature = "gpu_$key") =~ s/\s+//;
 			$features{$feature}++;
 			$features{"gpu_$vendor"}++;

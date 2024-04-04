@@ -21,12 +21,14 @@ gpgcheck=0
 name=CentOS-7
 #mirrorlist=http://mirrorlist.centos.org/?release=7&arch=$basearch&repo=updates&infra=$infra
 baseurl=http://mirror.centos.org/centos/7/os/$basearch/
+enabled=0
 gpgcheck=0
 
 [centos7-updates]
 name=CentOS-7 - Updates
 #mirrorlist=http://mirrorlist.centos.org/?release=7&arch=$basearch&repo=updates&infra=$infra
 baseurl=http://mirror.centos.org/centos/7/updates/$basearch/
+enabled=0
 gpgcheck=0
 
 [epel7]
