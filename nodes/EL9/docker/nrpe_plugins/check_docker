@@ -1,0 +1,21 @@
+#!/usr/bin/perl
+
+# Make sure a given docker container is running
+
+use strict;
+use warnings;
+use lib '/usr/lib64/nagios/plugins';
+use utils '%ERRORS';
+
+my $name = shift @ARGV || die "Must provide name of docker container";
+
+my @running = `grep $name /dev/shm/.docker_ps`;
+
+finish('OK', "Docker container '$name' is running.") if @running;
+finish('CRITICAL', "Docker container '$name' is not running!");
+
+sub finish {
+  my ($code, $msg) = @_;
+  print "Docker $code: $msg\n";
+  exit $ERRORS{$code};
+  }

@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+
+# Warn when the ambient temperature reaches a given point
+
+use strict;
+use warnings;
+use lib '/usr/lib64/nagios/plugins';
+use utils '%ERRORS';
+
+my $t_crit = shift @ARGV || 27;
+
+my ($t_min) = sort {$a<=>$b}
+              grep {$_ > 0.0}
+	      map {$_->[1]}
+              grep {$_->[2] =~ /degrees/ && $_->[1] =~ /^[\d\.]+$/}
+              map {[split /\s+\|\s+/]}
+	      `sudo ipmitool sensor`;
+
+finish('WARNING', "No reading") unless defined $t_min;
+finish('OK', "$t_min ºC") if $t_min < $t_crit;
+finish('CRITICAL', "$t_min ºC!");
+
+sub finish {
+  my ($code, $msg) = @_;
+  print "Ambient temperature $code: $msg\n";
+  exit $ERRORS{$code};
+  }
