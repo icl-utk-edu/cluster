@@ -4,10 +4,9 @@ VARIANT=$1
 
 if [[ $VARIANT = 'kernel3' ]]; then
    KVER=3.10.0-1160.102.1.el7.x86_64
-   source /tmp/spack/share/spack/setup-env.sh
-   spack load gcc
-   dnf --disablerepo=* --enablerepo=centos7,centos7-updates,epel7 install \
-   dkms kernel-$KVER kernel-devel-$KVER
+   # This kernel version is grabbed from a CentOS7 in the pxe configuration
+   #  rather than being installed inside the image. Don't build this directly.
+   exit 1
 fi
 if [[ $VARIANT = 'kernel4' ]]; then
    KVER=4.18.0-477.10.1.el8_8.x86_64

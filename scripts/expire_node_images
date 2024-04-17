@@ -1,18 +1,15 @@
 #!/bin/bash -e
 
-if [ $USER != "root" ]; then
-   echo Running as root
-   sudo -i $0 $@
-   exit
-fi
+# Don't remove images that are currently in use by a node or
+# are the newest image for each node TYPE
 
-runall -rl 'find / -maxdepth 1 -type f -size 0' 
+BASEDIR=$(cluster_basedir)
 
 ACTIVE=`runall -rl 'stat -c "%i" /' | awk '{print $2}' | sort -u`
 
-CURRENT=`stat -c '%i' /cluster/nodes/*/images/*/rootfs/`
+CURRENT=`stat -c '%i' $BASEDIR/nodes/*/images/*/rootfs/`
 
-for image in `ls -d /cluster/nodes/*/images/*/rootfs-*`; do
+for image in `ls -d $BASEDIR/nodes/*/images/*/rootfs-*`; do
    image_inode=`stat -c '%i' $image`
    for active_inode in $ACTIVE $CURRENT; do
       [ $image_inode = $active_inode ] && continue 2
