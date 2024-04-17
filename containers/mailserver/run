@@ -1,0 +1,13 @@
+#!/bin/sh
+
+HOST=mailserver
+
+docker stop $HOST
+docker rm $HOST
+
+docker build -t postfix .
+
+docker run --name $HOST --restart=unless-stopped -d \
+      -p 25 --net=web \
+      postfix
+
