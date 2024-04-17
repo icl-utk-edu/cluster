@@ -7,18 +7,14 @@ use warnings;
 use lib '/usr/lib64/nagios/plugins';
 use utils '%ERRORS';
 
-my $t_crit = shift @ARGV || 27;
+my $sensor = 'Temp_Ambient_FP';
+my $warn_temperature = 27;
 
-my ($t_min) = sort {$a<=>$b}
-              grep {$_ > 0.0}
-	      map {$_->[1]}
-              grep {$_->[2] =~ /degrees/ && $_->[1] =~ /^[\d\.]+$/}
-              map {[split /\s+\|\s+/]}
-	      `sudo ipmitool sensor`;
+my ($temperature) = `ipmitool sensor get "$sensor"` =~ /Reading\s+: (\d+)/s;
 
-finish('WARNING', "No reading") unless defined $t_min;
-finish('OK', "$t_min ºC") if $t_min < $t_crit;
-finish('CRITICAL', "$t_min ºC!");
+finish('WARNING', "No reading") unless defined $temperature;
+finish('OK', "$temperature ºC") if $temperature < $warn_temperature;
+finish('CRITICAL', "$temperature ºC!");
 
 sub finish {
   my ($code, $msg) = @_;
