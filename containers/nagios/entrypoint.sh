@@ -12,6 +12,7 @@ sudo -u apache /usr/sbin/php-fpm
 /usr/sbin/httpd
 #-DFOREGROUND
 
+export HOME=/tmp/
 chmod g+w  /var/spool/nagios/cmd
 conf=/etc/nagios/nagios.cfg
 /usr/sbin/nagios -v $conf

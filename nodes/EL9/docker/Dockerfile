@@ -169,7 +169,7 @@ RUN echo swap load perl \
 RUN systemctl enable nrpe
 COPY nrpe.cfg /etc/nagios/
 COPY nrpe_plugins /etc/nagios/plugins
-RUN echo "nrpe ALL = (root) NOPASSWD: /usr/bin/ipmitool sensor" > /etc/sudoers.d/nrpe
+RUN echo "nrpe ALL = (root) NOPASSWD: /etc/nagios/plugins/check_temperature" > /etc/sudoers.d/nrpe
 
 
 COPY inventory.sh /etc/cron.daily/

@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+
+# Make sure the given file is readable
+
+use strict;
+use warnings;
+use lib '/usr/lib64/nagios/plugins';
+use utils '%ERRORS';
+
+my $file = shift @ARGV || die "Must provide the path to a file";
+
+open(IN, $file) or finish('CRITICAL', "File '$file' not readable!");
+my $IN = <IN>;
+close IN;
+
+finish('OK', "File '$file' is readable");
+
+sub finish {
+  my ($code, $msg) = @_;
+  print "File $code: $msg\n";
+  exit $ERRORS{$code};
+  }

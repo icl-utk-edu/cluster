@@ -21,11 +21,11 @@
   service: name=nrpe state=started enabled=yes
   when: ansible_os_family == "RedHat"
 
-- name: Enable access to nrpe from admin.icl.utk.edu
-  firewalld: 
-    rich_rule: 'rule family="ipv4" service name="nrpe" source address="160.36.131.182" accept'
-    state: enabled
-    permanent: true
-    immediate: true
-  when: ansible_os_family == "RedHat"
+    #- name: Enable access to nrpe from admin.icl.utk.edu
+    #  firewalld: 
+    #    rich_rule: 'rule family="ipv4" service name="nrpe" source address="160.36.131.182" accept'
+    #    state: enabled
+    #    permanent: true
+    #    immediate: true
+    #  when: ansible_os_family == "RedHat"
 

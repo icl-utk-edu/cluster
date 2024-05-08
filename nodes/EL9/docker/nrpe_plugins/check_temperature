@@ -13,8 +13,8 @@ my $warn_temperature = 27;
 my ($temperature) = `ipmitool sensor get "$sensor"` =~ /Reading\s+: (\d+)/s;
 
 finish('WARNING', "No reading") unless defined $temperature;
-finish('OK', "$temperature ºC") if $temperature < $warn_temperature;
-finish('CRITICAL', "$temperature ºC!");
+finish('OK', "$temperature C") if $temperature < $warn_temperature;
+finish('CRITICAL', "$temperature C!");
 
 sub finish {
   my ($code, $msg) = @_;
