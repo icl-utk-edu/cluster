@@ -11,3 +11,4 @@
           - ipa-client
           - ganglia-gmond
           - zfs
+          - nrpe
