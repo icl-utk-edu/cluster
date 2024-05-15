@@ -22,6 +22,11 @@ RUN echo set smtp-auth=none >> /etc/s-nail.rc
 RUN echo set mta=smtp://mailserver >> /etc/s-nail.rc
 
 
+# Configure cron job
+RUN dnf -y install anacron
+COPY cron_nagios_notification_email /opt/
+COPY crontab /etc/
+
 ENTRYPOINT /entrypoint.sh
 
 

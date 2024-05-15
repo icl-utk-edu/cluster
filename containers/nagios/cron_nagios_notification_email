@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+
+# Rotate the Nagios notifications log file.
+# Print each message in the Nagios log file.
+# Mail everything to the email address provided.
+
+use strict;
+use warnings;
+
+my $nagfile = '/var/log/nagios/notifications.log';
+
+die "No nagios notifications file found." unless -e $nagfile;
+
+my $file = '/tmp/nagios-' . time . '.log';
+`mv $nagfile $file`;
+my @msg;
+
+open(LOG, $file) or die $!;
+while(<LOG>){
+  push @msg, $_;
+}
+close LOG;
+unlink $file;
+
+my $count = @msg;
+
+exit unless @msg;
+
+open(MAIL, "| mailx -r webmaster\@icl.utk.edu -s 'Nagios Monitor $count' ragghianti\@icl.utk.edu") or die "Error running mail command";
+print MAIL @msg;
+close MAIL;
+

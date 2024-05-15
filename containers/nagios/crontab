@@ -1,0 +1,5 @@
+SHELL=/bin/bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+MAILTO=root
+
+*/15 * * * * root /opt/cron_nagios_notification_email > /var/log/cron_nagios_notification_email.log 2>&1
