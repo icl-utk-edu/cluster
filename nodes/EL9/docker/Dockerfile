@@ -177,5 +177,3 @@ COPY inventory.sh /etc/cron.daily/
 RUN dnf -y install tcpdump net-tools lz4 man-pages colordiff the_silver_searcher rust smartmontools
 RUN dnf clean all
 
-
-
