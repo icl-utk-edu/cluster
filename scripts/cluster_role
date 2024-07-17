@@ -1,0 +1,76 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Newton;
+use Getopt::Long;
+use Digest::MD5 'md5_hex';
+
+my $basedir = Newton::basedir();
+
+my ($name, $nodeset, $default, $available);
+my $ok = GetOptions(
+  'name|node=s' => \$name,
+  'nodeset=s' => \$nodeset,
+  'default' => \$default,
+  'available' => \$available,
+  );
+
+unless($ok){
+  die "Usage: $0 [ --name <name> | --nodeset <nodeset> | --default | --available ] [<role>] [<variant>]\n"
+  }
+
+my $role = shift @ARGV;
+my $variants = @ARGV ? join(' ', sort {$a cmp $b} @ARGV) : 'default';
+
+my $db = Newton::db();
+
+my $where = defined $name ? "name='$name'" : (defined $nodeset ? "nodeset='$nodeset'" : "true");
+
+if($available){
+  display_available();
+  exit;
+} elsif(not defined $role){
+  my $roles = $db->selectall_arrayref(
+    "SELECT name,role FROM addresses WHERE type='system' AND $where",
+    );
+  for(@$roles){
+    my ($name, $role) = @$_;
+    $role = 'undefined' unless defined $role;
+    print "Role for $name is $role\n";
+    }
+  exit;
+  }
+
+my $hash = md5_hex("$role $variants");
+
+die "Role $role ($variants) is not available.\n"
+  unless -e "$basedir/nodes/$role/images/$hash/config.ipxe";
+
+die "Node specification does not exist.\n"
+  unless $db->do("UPDATE addresses SET role=? WHERE $where", undef, "$role $variants") > 0;
+
+Newton::node_install_pxe();
+
+
+sub display_available {
+   for( glob("$basedir/nodes/*/images/*") ){
+	   my $path = $_;
+	   my ($role, $variants, $date) = image_info($path);
+	   next unless defined $role;
+	   print "[$date] $role $variants\n";
+   }
+}
+
+sub image_info {
+   my $path = shift;
+   open(IN, "$path/rootfs/node_image.txt") or return;
+   my $info = <IN>;
+   close IN;
+   chomp $info;
+   my @info = split(/\s+/, $info);
+   my $role = shift @info;
+   my $date = pop @info;
+   my $variants = join(' ', @info);
+   return $role, $variants, $date;
+}
