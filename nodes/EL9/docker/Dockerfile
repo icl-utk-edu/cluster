@@ -1,8 +1,6 @@
 FROM rockylinux:9
 
-#ARG KPKG=kernel-lt
-#ARG KVER=6.1.62-1.el9.elrepo.x86_64
-ARG VARIANT=base
+ENV ROLE=EL9
 
 # Reinstall because some files (like man pages) aren't installed at first
 RUN dnf -y reinstall \* && dnf -y update
@@ -32,12 +30,12 @@ RUN dnf -y install epel-release && \
     dnf -y install slurm-slurmd munge pmix-devel
 RUN touch /etc/slurm/gres.conf
 RUN echo files /etc/slurm/gres.conf >> /etc/rwtab
-COPY --from=slurm slurm.conf cgroup.conf /etc/slurm/
+COPY --from=etc slurm/slurm.conf slurm/cgroup.conf /etc/slurm/
 COPY slurmd.service /usr/lib/systemd/system/
 COPY slurmd_startup /usr/sbin/
 RUN systemctl enable munge
 RUN useradd --no-create-home --system -g daemon --uid 9 slurm
-COPY --from=munge --chown=munge:munge munge.key /etc/munge/
+COPY --from=etc --chown=munge:munge munge/munge.key /etc/munge/
 
 
 # LDAP for user accounts and authentication
@@ -64,44 +62,59 @@ RUN dnf -y group install development debugging infiniband
 RUN dnf -y install zsh vim neovim tmux screen man emacs-nox xauth rsync java-11-openjdk sudo
 
 # Install kernel
-COPY custom.repo /etc/yum.repos.d/
+ARG KERNEL=default
+COPY custom.repo vault.repo /etc/yum.repos.d/
 COPY kernel.sh /tmp/
-RUN /tmp/kernel.sh $VARIANT && rm /tmp/kernel.sh
+RUN /tmp/kernel.sh $KERNEL && rm /tmp/kernel.sh
+RUN echo 'excludepkgs=kernel,kernel-devel' >> /etc/dnf/dnf.conf
 RUN dnf -y install dracut-network rpcbind nfs-utils NetworkManager
 
 
 # Install Intel GPU support
 COPY intel-gpu.repo /etc/yum.repos.d/
-# The intel driver will so far only work with the stock kernel
-RUN [ $VARIANT = "kernel-stock" ] && dnf -y install intel-fw-gpu intel-i915-dkms xpu-smi || true
-RUN dnf -y install intel-opencl intel-media intel-mediasdk libmfxgen1 libvpl2 \
-  level-zero intel-level-zero-gpu mesa-dri-drivers mesa-vulkan-drivers \
-  mesa-vdpau-drivers libdrm mesa-libEGL mesa-libgbm mesa-libGL \
-  mesa-libxatracker libvpl-tools intel-metrics-discovery \
-  intel-metrics-library intel-igc-core intel-igc-cm \
-  libva libva-utils intel-gmmlib libmetee intel-gsc intel-ocloc \
-  intel-igc-opencl-devel level-zero-devel intel-gsc-devel libmetee-devel level-zero-devel \
-  hwinfo clinfo
+# The intel driver will so far only work with the default OS kernel
+RUN if [ $KERNEL = "default" ]; then \
+       dnf -y install intel-fw-gpu intel-i915-dkms xpu-smi \
+          intel-opencl intel-media intel-mediasdk libmfxgen1 libvpl2 \
+          level-zero intel-level-zero-gpu mesa-dri-drivers mesa-vulkan-drivers \
+          mesa-vdpau-drivers libdrm mesa-libEGL mesa-libgbm mesa-libGL \
+          mesa-libxatracker libvpl-tools intel-metrics-discovery \
+          intel-metrics-library intel-igc-core intel-igc-cm \
+          libva libva-utils intel-gmmlib libmetee intel-gsc intel-ocloc \
+          intel-igc-opencl-devel level-zero-devel intel-gsc-devel libmetee-devel level-zero-devel \
+          hwinfo clinfo ; \
+    fi
 
 
 # Install CUDA
+ARG CUDAVER=11
 COPY cuda.repo /etc/yum.repos.d/
-RUN dnf -y module install nvidia-driver:545-dkms
-RUN dnf -y install cuda-11.8.0 cuda-drivers-fabricmanager-545
+RUN if [ "$KERNEL" == "3" ]; then \
+       echo Not installing CUDA ; \
+    elif [ $CUDAVER = "11" ]; then \
+       dnf -y module install nvidia-driver:545-dkms && \
+       dnf -y install cuda-11.8.0 cuda-drivers-fabricmanager-545; \
+    elif [ $CUDAVER = "12" ]; then \
+       dnf -y module install nvidia-driver:555-dkms && \
+       dnf -y install cuda-12.5.0 cuda-drivers-fabricmanager-555; \
+    fi
 RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
-RUN systemctl enable nvidia-persistenced nvidia-fabricmanager
+RUN if [ "$KERNEL" != "3" ];then systemctl enable nvidia-persistenced nvidia-fabricmanager; fi
 
+# Install rocm
 COPY rocm.repo /etc/yum.repos.d/
-RUN dnf -y --enablerepo=crb install perl-File-BaseDir perl-URI-Encode
-RUN dnf -y install amdgpu-dkms rocm-hip-sdk rocm-dkms hip-nvcc rocprim rocm-ml-sdk rocm-openmp-sdk rocm-opencl-sdk rocm-developer-tools
+RUN if [ "$KERNEL" != "3" ]; then \
+       dnf -y --enablerepo=crb install perl-File-BaseDir perl-URI-Encode && \
+       dnf -y install amdgpu-dkms rocm-hip-sdk rocm-dkms hip-nvcc rocprim rocm-ml-sdk rocm-openmp-sdk rocm-opencl-sdk rocm-developer-tools ; \
+    fi
 
 RUN dnf -y install https://zfsonlinux.org/epel/zfs-release-2-2$(rpm --eval "%{dist}").noarch.rpm
 RUN dnf -y install zfs
 RUN mkdir -p /apps /data
 
 # Build kernel modules
-RUN cat /boot/kver
 RUN dkms autoinstall -k `cat /boot/kver` && dkms status
+
 # Build initrd
 RUN dracut --force --add nfs --no-hostonly --kver `cat /boot/kver`
 RUN chmod 644 /boot/initramfs*.img
@@ -166,7 +179,8 @@ COPY gmond.conf /etc/ganglia/
 # Nagios
 RUN echo swap load perl \
     | xargs -n1 | xargs -Iggg echo nagios-plugins-ggg | xargs dnf -y install nrpe
-RUN systemctl enable nrpe
+# Disable nrpe because systemd causes it to not work correctly.  Start in rc.local.
+RUN systemctl disable nrpe
 COPY nrpe.cfg /etc/nagios/
 COPY nrpe_plugins /etc/nagios/plugins
 RUN echo "nrpe ALL = (root) NOPASSWD: /etc/nagios/plugins/check_temperature" > /etc/sudoers.d/nrpe
@@ -176,4 +190,22 @@ COPY inventory.sh /etc/cron.daily/
 
 RUN dnf -y install tcpdump net-tools lz4 man-pages colordiff the_silver_searcher rust smartmontools
 RUN dnf clean all
+
+ARG HASH
+COPY config.ipxe /boot/
+RUN if [ "$KERNEL" == "3" ]; then \
+       sed -i "s/EL9/EL7/" /boot/config.ipxe && \
+       sed -i "s/HASH/f3497004c9a4d9e7e862da9859f42667/" /boot/config.ipxe && \
+       sed -i "s/HASH/$HASH/" /boot/config.ipxe ; \
+    else \
+       sed -i "s/HASH/$HASH/g" /boot/config.ipxe ; \
+    fi
+
+# Enable old core dump behavior
+RUN echo kernel.core_pattern=core > /etc/sysctl.d/99-coredump.conf
+
+# SSH keys
+COPY --from=etc ssh/ssh_host_rsa_key /etc/ssh/
+COPY --from=ssh_root *.pub /root/.ssh/authorized_keys
+
 

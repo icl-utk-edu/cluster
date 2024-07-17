@@ -73,6 +73,9 @@ awk '{print $1}' /proc/modules | grep '^nvidia$' || \
 DEV=$(ip -o a show to 10.0.0.0/24 | awk '{print $2}')
 nmcli device set $DEV managed no
 
+# Start nrpe without systemd interference
+sudo -u nrpe /usr/sbin/nrpe -c /etc/nagios/nrpe.cfg -d
+
 # Do everything else
 for script in $(find /etc/rc.d/rc3.d -type f | sort);do
   $script

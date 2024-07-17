@@ -9,45 +9,46 @@ fi
 set -x
 
 NAME=$1
-VARIANT=${2:-base}
+shift
+VARIANTS=$( echo $@ | xargs -n1 echo | sort | xargs echo)
 BASEDIR=$(cluster_basedir)
 DOCKER=$BASEDIR/nodes/$NAME/docker
-DEST=$BASEDIR/nodes/$NAME/images/$VARIANT
+if [ -z "$VARIANTS" ]; then
+	VARIANTS=default
+else 
+        ARGS="--build-arg ${VARIANTS// / --build-arg }"
+fi
+HASH=$(echo -n $NAME $VARIANTS | md5sum | awk '{print $1}')
+DEST=$BASEDIR/nodes/$NAME/images/$HASH
 DATE=`date '+%F-%T'`
 ROOTFS=$DEST/rootfs-$DATE
 
-if [[ -z "$NAME" || ! -d $DOCKER || ! -d $DEST ]]; then
+if [[ -z "$NAME" || ! -d $DOCKER ]]; then
 	echo "Please provide a valid node image name"
 	exit 1
 fi
 
+mkdir -p $ROOTFS
+cd $ROOTFS
+
 docker build --progress=plain -t temp \
 	--ulimit nofile=1024000:1024000 \
 	--build-context etc=/etc \
-	--build-context munge=/etc/munge/ \
-	--build-context slurm=/etc/slurm/ \
 	--build-context ansible=$BASEDIR/ansible \
 	--build-context common=$BASEDIR/nodes/common \
-	--build-arg VARIANT=$VARIANT \
-	$DOCKER
-docker remove temp || true
-docker run -it --name temp temp sleep 0
-mkdir -p $ROOTFS
-cd $ROOTFS
-docker export temp | tar -x
+	--build-context ssh_root=/root/.ssh \
+	--build-arg HASH=$HASH \
+        --output - \
+	$ARGS $DOCKER | tar -x 
 
-headnode=`host headnode | awk '{print $4}'`
-echo -e "search cluster\nnameserver $headnode" > etc/resolv.conf
-
-cp -a /etc/ssh/ssh_host_rsa* etc/ssh/
-chmod 600 etc/ssh/ssh_host*key
-cat /root/.ssh/*.pub >> root/.ssh/authorized_keys
+echo -e "search cluster\nnameserver $(host headnode | awk '{print $4}')" > etc/resolv.conf
 
 cd ..
 rm -f rootfs
 ln -sf $ROOTFS rootfs
 ln -sf rootfs/boot/vmlinuz-* kernel
 ln -sf rootfs/boot/init*.img initrd
-touch $ROOTFS/$NAME-$VARIANT-$DATE
+ln -sf rootfs/boot/config.ipxe config.ipxe
+echo $NAME $VARIANTS $DATE > $ROOTFS/node_image.txt
 echo Success!
 

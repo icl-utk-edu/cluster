@@ -13,7 +13,7 @@ use File::Temp qw(tempfile tempdir);
 use Net::LDAPS;
 use LWP::Simple 'get';
 use Storable 'thaw';
-use Digest::MD5 'md5_base64';
+use Digest::MD5 qw/md5_base64 md5_hex/;
 use URI::Escape;
 use Parallel;
 use File::Copy;
@@ -537,8 +537,8 @@ sub sudo {
   }
 
 sub node_install {
-	#node_install_dnsmasq();
-	#node_install_pxe();
+  node_install_dnsmasq();
+  node_install_pxe();
   node_install_nagios();
   #Newton::Slurm::create_config('/etc/slurm/cluster.conf');
   # Nagios
@@ -563,12 +563,13 @@ sub node_install_pxe {
   my $basedir = basedir();
   my @nodes = nodes(type=>'system');
   for(@nodes){
-    my ($role, $variant) = split('/', $_->{role});
-    $variant ||= 'base';
-    my $config = "${basedir}nodes/$role/images/$variant/config.ipxe";
-    unless(defined($role) and -e $config){
-      $role = '';
-      warn "Warning: Node role '$role' not found!";
+    my $node = $_->{name};
+    my $role = $_->{role};
+    my ($base) = split(/\s+/, $_->{role});
+    my $hash = md5_hex($_->{role});
+    my $config = "${basedir}nodes/$base/images/$hash/config.ipxe";
+    unless(defined($base) and -e $config){
+      warn "Warning: Node role '$role' not found for node '$node'!\n";
       next;
       }
     $_->{mac} =~ s/://g;
