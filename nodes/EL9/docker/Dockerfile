@@ -124,8 +124,9 @@ RUN rm /etc/NetworkManager/system-connections/*
 
 COPY --from=common motd /etc/
 
-RUN dnf -y install environment-modules
-COPY env.* prompt.sh /etc/profile.d/
+ARG MODULE=tcl
+RUN if [$MODULE="tcl"]; then dnf -y install environment-modules; fi
+COPY env-$MODULE.* prompt.sh /etc/profile.d/
 
 COPY docker.repo /etc/yum.repos.d/
 RUN groupadd -g 1001 docker
@@ -205,7 +206,7 @@ RUN if [ "$KERNEL" == "3" ]; then \
 RUN echo kernel.core_pattern=core > /etc/sysctl.d/99-coredump.conf
 
 # SSH keys
-COPY --from=etc ssh/ssh_host_rsa_key /etc/ssh/
+COPY --from=etc --chmod=0600 ssh/ssh_host_rsa_key /etc/ssh/
 COPY --from=ssh_root *.pub /root/.ssh/authorized_keys
 
 
