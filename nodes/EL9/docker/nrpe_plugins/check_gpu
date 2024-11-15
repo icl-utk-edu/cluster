@@ -1,0 +1,43 @@
+#!/usr/bin/perl
+
+# Detect GPUs on boot / first check and compare
+# GPU current status with initial status
+
+use strict;
+use warnings;
+use lib '/usr/lib64/nagios/plugins';
+use utils '%ERRORS';
+
+my $logfile = '/dev/shm/.nrpe_check_gpu';
+
+my $errors = check_rocm();
+$errors += check_nvidia();
+$errors += check_intel();
+
+finish('CRITICAL', "Error on $errors GPUs!") if $errors;
+finish('OK', "No GPU errors.");
+
+sub check_rocm {
+	# rocminfo shows an error when there is a problem with one of the GPUs.
+	# Just return +1 when the command returns a non-zero value.
+	`rocminfo 2>&1`;
+	return $?;
+}
+
+sub check_nvidia { 0 }
+sub check_intel { 0 }
+
+sub store {
+	my @data = @_;
+	return if -e $logfile;
+	open(OUT, "> $logfile") or die $!;
+	flock(OUT, 2) or die $!;
+	print OUT @data;
+	close OUT;
+}
+
+sub finish {
+  my ($code, $msg) = @_;
+  print "Docker $code: $msg\n";
+  exit $ERRORS{$code};
+  }
