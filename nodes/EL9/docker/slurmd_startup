@@ -33,8 +33,11 @@ for(@cmds){
 	}
 }
 
+$gres{github} = 1;
+
 open(OUT, '+>/etc/slurm/gres.conf') or die $!;
 flock(OUT, 2) or die $!;
+print OUT "Name=github Count=1\n";
 print OUT @devices;
 close OUT;
 
@@ -43,11 +46,11 @@ my $config = `slurmd -C | grep NodeName`;
 chomp $config;
 $config =~ s/NodeName=(\S+)//;
 my $nodename = $1;
-if($config =~ s/ThreadsPerCore=2/ThreadsPerCore=1/){
-	$config =~ /CPUs=(\d+)/;
-	my $cpus = $1 / 2;
-	$config =~ s/CPUs=\d+/CPUs=$cpus/;
-}
+#if($config =~ s/ThreadsPerCore=2/ThreadsPerCore=1/){
+#	$config =~ /CPUs=(\d+)/;
+#	my $cpus = $1 / 2;
+#	$config =~ s/CPUs=\d+/CPUs=$cpus/;
+#}
 
 # Set "docker" feature if docker is running
 unless(system('docker ps')){
@@ -75,6 +78,14 @@ if(keys %gres){
 if(keys %features){
 	$config .= ' Feature=' . join(',', keys %features);
 }
+
+# Force pam_slurm_adopt to use the correct hostname
+my $host = `hostname -s`;
+chomp $host;
+open(OUT, "+> /etc/pam.d/slurm") or die $!;
+flock(OUT, 2) or die $!;
+print OUT "account required pam_slurm_adopt.so nodename=$host\n";
+close OUT;
 
 `scontrol delete node $nodename`;
 

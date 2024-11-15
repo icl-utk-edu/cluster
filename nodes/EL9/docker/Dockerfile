@@ -27,7 +27,7 @@ RUN dnf -y install rsyslog && \
 
 # Slurm
 RUN dnf -y install epel-release && \
-    dnf -y install slurm-slurmd munge pmix-devel
+    dnf -y install slurm-slurmd slurm-pam_slurm munge pmix-devel
 RUN touch /etc/slurm/gres.conf
 RUN echo files /etc/slurm/gres.conf >> /etc/rwtab
 COPY --from=etc slurm/slurm.conf slurm/cgroup.conf /etc/slurm/
@@ -36,7 +36,6 @@ COPY slurmd_startup /usr/sbin/
 RUN systemctl enable munge
 RUN useradd --no-create-home --system -g daemon --uid 9 slurm
 COPY --from=etc --chown=munge:munge munge/munge.key /etc/munge/
-
 
 # LDAP for user accounts and authentication
 RUN dnf -y install openldap-clients sssd sssd-ldap authselect && \
@@ -165,6 +164,7 @@ RUN wget -O - https://github.com/zfsonlinux/zfs-auto-snapshot/archive/upstream/1
 COPY cron.d /etc/cron.d
 
 RUN echo "%admins ALL=(ALL) ALL" > /etc/sudoers.d/admins
+RUN echo "%papi dopamine,serotonin=(ALL) ALL" > /etc/sudoers.d/papi
 
 # Remove memlock limit for MPI
 COPY limits.conf /etc/security/
@@ -189,7 +189,7 @@ RUN echo "nrpe ALL = (root) NOPASSWD: /etc/nagios/plugins/check_temperature" > /
 
 COPY inventory.sh /etc/cron.daily/
 
-RUN dnf -y install tcpdump net-tools lz4 man-pages colordiff the_silver_searcher rust smartmontools
+RUN dnf -y install tcpdump net-tools lz4 man-pages colordiff the_silver_searcher rust smartmontools lsof
 RUN dnf clean all
 
 ARG HASH
@@ -209,4 +209,7 @@ RUN echo kernel.core_pattern=core > /etc/sysctl.d/99-coredump.conf
 COPY --from=etc --chmod=0600 ssh/ssh_host_rsa_key /etc/ssh/
 COPY --from=ssh_root *.pub /root/.ssh/authorized_keys
 
+# pam_adopt slurm config
+COPY pam.d-sshd /etc/pam.d/sshd
+RUN sed -i -e '/systemd/ s/^#*/#/' /etc/pam.d/* /etc/authselect/*-auth
 

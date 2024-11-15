@@ -28,9 +28,6 @@ if [[ -z "$NAME" || ! -d $DOCKER ]]; then
 	exit 1
 fi
 
-mkdir -p $ROOTFS
-cd $ROOTFS
-
 docker build --progress=plain -t temp \
 	--ulimit nofile=1024000:1024000 \
 	--build-context etc=/etc \
@@ -38,8 +35,13 @@ docker build --progress=plain -t temp \
 	--build-context common=$BASEDIR/nodes/common \
 	--build-context ssh_root=/root/.ssh \
 	--build-arg HASH=$HASH \
-        --output - \
-	$ARGS $DOCKER | tar -x 
+	$ARGS $DOCKER
+
+docker remove temp || true
+docker run -it --name temp temp sleep 0
+mkdir -p $ROOTFS
+cd $ROOTFS
+docker export temp | tar -x
 
 echo -e "search cluster\nnameserver $(host headnode | awk '{print $4}')" > etc/resolv.conf
 
