@@ -8,16 +8,17 @@ use Digest::MD5 'md5_hex';
 
 my $basedir = Newton::basedir();
 
-my ($name, $nodeset, $default, $available);
+my ($name, $nodeset, $default, $available, $distinct);
 my $ok = GetOptions(
   'name|node=s' => \$name,
   'nodeset=s' => \$nodeset,
   'default' => \$default,
   'available' => \$available,
+  'distinct' => \$distinct,
   );
 
 unless($ok){
-  die "Usage: $0 [ --name <name> | --nodeset <nodeset> | --default | --available ] [<role>] [<variant>]\n"
+  die "Usage: $0 [ --name <name> | --nodeset <nodeset> | --default | --available ] [--distinct] [<role>] [<variant>]\n"
   }
 
 my $role = shift @ARGV;
@@ -34,10 +35,15 @@ if($available){
   my $roles = $db->selectall_arrayref(
     "SELECT name,role FROM addresses WHERE type='system' AND $where",
     );
+  my %done;
   for(@$roles){
     my ($name, $role) = @$_;
     $role = 'undefined' unless defined $role;
-    print "Role for $name is $role\n";
+    if(defined $distinct){
+      print "$role\n" unless $done{$role}++;
+      } else {
+      print "Role for $name is $role\n";
+      }
     }
   exit;
   }

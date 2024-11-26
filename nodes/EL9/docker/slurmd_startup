@@ -46,6 +46,7 @@ my $config = `slurmd -C | grep NodeName`;
 chomp $config;
 $config =~ s/NodeName=(\S+)//;
 my $nodename = $1;
+
 #if($config =~ s/ThreadsPerCore=2/ThreadsPerCore=1/){
 #	$config =~ /CPUs=(\d+)/;
 #	my $cpus = $1 / 2;
@@ -72,6 +73,8 @@ for(qw/AMD Intel POWER9 ARM/){
 my ($nodeset) = $nodename =~ /^([a-z]+)/;
 $features{$nodeset} = 1;
 
+$features{infiniband} = 1 if has_infiniband();
+
 if(keys %gres){
 	$config .= ' Gres=' . join(',', map {"$_:$gres{$_}"} keys %gres);
 }
@@ -92,3 +95,8 @@ close OUT;
 print "Config: $config\n";
 exec('/usr/sbin/slurmd', '-D', '-s', '-Z', '--conf', $config);
 
+
+sub has_infiniband {
+	# Return true if Infiniband port is active
+	return `ibstatus` =~ /ACTIVE/s;
+}

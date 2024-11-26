@@ -6,11 +6,22 @@ if [ $USER != "root" ]; then
    exit
 fi
 
-set -x
+#set -x
 
 NAME=$1
+if [ -z "$NAME" ]; then
+	# Build all node roles that are assigned to nodes
+	IFS=$'\n'
+	# "docker run" causes problems with "while read", this is tricky
+	for image in `cluster_role --distinct`; do
+		unset IFS # Need this!
+		build_node_image $image
+	done
+	exit
+fi
 shift
 VARIANTS=$( echo $@ | xargs -n1 echo | sort | xargs echo)
+echo Building $NAME $VARIANTS
 BASEDIR=$(cluster_basedir)
 DOCKER=$BASEDIR/nodes/$NAME/docker
 if [ -z "$VARIANTS" ]; then
@@ -28,7 +39,9 @@ if [[ -z "$NAME" || ! -d $DOCKER ]]; then
 	exit 1
 fi
 
-docker build --progress=plain -t temp \
+IMAGE=node_image_$HASH
+
+docker build --progress=plain -t $IMAGE \
 	--ulimit nofile=1024000:1024000 \
 	--build-context etc=/etc \
 	--build-context ansible=$BASEDIR/ansible \
@@ -38,7 +51,7 @@ docker build --progress=plain -t temp \
 	$ARGS $DOCKER
 
 docker remove temp || true
-docker run -it --name temp temp sleep 0
+docker run -i --name temp $IMAGE sleep 0
 mkdir -p $ROOTFS
 cd $ROOTFS
 docker export temp | tar -x
@@ -52,5 +65,5 @@ ln -sf rootfs/boot/vmlinuz-* kernel
 ln -sf rootfs/boot/init*.img initrd
 ln -sf rootfs/boot/config.ipxe config.ipxe
 echo $NAME $VARIANTS $DATE > $ROOTFS/node_image.txt
-echo Success!
+echo Done building $NAME $VARIANTS - $IMAGE
 

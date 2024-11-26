@@ -73,22 +73,24 @@ RUN dnf -y install dracut-network rpcbind nfs-utils NetworkManager
 COPY intel-gpu.repo /etc/yum.repos.d/
 # The intel driver will so far only work with the default OS kernel
 RUN if [ $KERNEL = "default" ]; then \
-       dnf -y install intel-fw-gpu intel-i915-dkms xpu-smi \
+       dnf -y --enablerepo=intel --nobest install intel-fw-gpu intel-i915-dkms xpu-smi \
           intel-opencl intel-media intel-mediasdk libmfxgen1 libvpl2 \
           level-zero intel-level-zero-gpu mesa-dri-drivers mesa-vulkan-drivers \
-          mesa-vdpau-drivers libdrm mesa-libEGL mesa-libgbm mesa-libGL \
+          mesa-vdpau-drivers mesa-libEGL mesa-libgbm mesa-libGL \
           mesa-libxatracker libvpl-tools intel-metrics-discovery \
           intel-metrics-library intel-igc-core intel-igc-cm \
           libva libva-utils intel-gmmlib libmetee intel-gsc intel-ocloc \
           intel-igc-opencl-devel level-zero-devel intel-gsc-devel libmetee-devel level-zero-devel \
-          hwinfo clinfo ; \
+          libdrm hwinfo clinfo ; \
     fi
 
 
+RUN echo "keepcache=1" >> /etc/dnf/dnf.conf
 # Install CUDA
 ARG CUDAVER=11
 COPY cuda.repo /etc/yum.repos.d/
-RUN if [ "$KERNEL" == "3" ]; then \
+RUN --mount=type=cache,target=/var/cache/dnf \
+    if [ "$KERNEL" == "3" ]; then \
        echo Not installing CUDA ; \
     elif [ $CUDAVER = "11" ]; then \
        dnf -y module install nvidia-driver:545-dkms && \
@@ -102,7 +104,8 @@ RUN if [ "$KERNEL" != "3" ];then systemctl enable nvidia-persistenced nvidia-fab
 
 # Install rocm
 COPY rocm.repo /etc/yum.repos.d/
-RUN if [ "$KERNEL" != "3" ]; then \
+RUN --mount=type=cache,target=/var/cache/dnf \
+       if [ "$KERNEL" != "3" ]; then \
        dnf -y --enablerepo=crb install perl-File-BaseDir perl-URI-Encode && \
        dnf -y install amdgpu-dkms rocm-hip-sdk rocm-dkms hip-nvcc rocprim rocm-ml-sdk rocm-openmp-sdk rocm-opencl-sdk rocm-developer-tools ; \
     fi
@@ -150,7 +153,8 @@ RUN echo "files /etc/hostname" >> /etc/rwtab
 RUN echo "files /var/lib/systemd" >> /etc/rwtab
 RUN echo "files /root" >> /etc/rwtab
 
-RUN dnf -y install csh zsh sed pciutils gcc-gfortran wget traceroute nmap perl-DBI perl-DBD-SQLite dmidecode cpuid perf mesa-dri-drivers subversion
+RUN dnf -y install csh zsh sed pciutils gcc-gfortran wget traceroute nmap perl-DBI perl-DBD-SQLite dmidecode cpuid perf subversion
+RUN dnf -y install --nobest mesa-dri-drivers
 
 RUN dnf -y install cronie && \
     rm -f /etc/cron.deny
@@ -210,6 +214,8 @@ COPY --from=etc --chmod=0600 ssh/ssh_host_rsa_key /etc/ssh/
 COPY --from=ssh_root *.pub /root/.ssh/authorized_keys
 
 # pam_adopt slurm config
-COPY pam.d-sshd /etc/pam.d/sshd
-RUN sed -i -e '/systemd/ s/^#*/#/' /etc/pam.d/* /etc/authselect/*-auth
+RUN touch /etc/pam.d/slurm
+RUN echo "files /etc/pam.d/slurm" >> /etc/rwtab  # slurmd_startup writes here
+COPY pam.d-password-auth /etc/pam.d/password-auth
+#RUN sed -i -e '/systemd/ s/^#*/#/' /etc/pam.d/* /etc/authselect/*-auth
 

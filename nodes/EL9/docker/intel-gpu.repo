@@ -1,6 +1,6 @@
-[intel-graphics-9.3-unified]
+[intel]
 name=Intel graphics 9.3 unified
-enabled=1
+enabled=0
 gpgcheck=1
 baseurl=https://repositories.intel.com/gpu/rhel/9.3/lts/2350/unified/
 gpgkey=https://repositories.intel.com/gpu/intel-graphics.key
