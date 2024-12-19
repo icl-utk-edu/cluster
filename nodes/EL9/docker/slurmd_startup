@@ -85,9 +85,12 @@ if(keys %features){
 # Force pam_slurm_adopt to use the correct hostname
 my $host = `hostname -s`;
 chomp $host;
+my $pam_conf = "account required pam_slurm_adopt.so nodename=$host\n";
+$pam_conf = "account required pam_unix.so\n" if $host eq 'histamine0';
+
 open(OUT, "+> /etc/pam.d/slurm") or die $!;
 flock(OUT, 2) or die $!;
-print OUT "account required pam_slurm_adopt.so nodename=$host\n";
+print OUT $pam_conf;
 close OUT;
 
 `scontrol delete node $nodename`;

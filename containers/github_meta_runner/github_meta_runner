@@ -3,10 +3,10 @@
 use strict;
 use warnings;
 
-MyWebServer->new(80)->run();
+github_meta_runner->new(80)->run();
 
 
-package MyWebServer;
+package github_meta_runner;
 
 use strict;
 use warnings;
@@ -26,32 +26,40 @@ sub handle_request {
 
 sub response {
    my $cgi = shift;
-   my $raw = $cgi->param('payload') || return 'error';
-   my $payload = decode_json($raw) || return 'error';
+   my $raw = $cgi->param('payload') || return Log('payload error');
+   my $payload = decode_json($raw) || return Log('decode error');
    my $org = $payload->{organization}->{login};
    my $action = $payload->{action};
-   return('ignoring', 200) unless $action eq 'queued';
+   return(Log('ignoring'), 200) unless $action eq 'queued';
    my $job = $payload->{workflow_job};
-   return('job not found', 501) unless defined $job and ref($job);
+   return(Log('job not found'), 501) unless defined $job and ref($job);
    my $labels = $job->{labels};
-   return('no labels found', 501) unless defined $labels and ref($labels);
+   return(Log('no labels found'), 501) unless defined $labels and ref($labels);
    my ($slurm_label) = grep /^slurm/, @$labels;
-   return('ignoring', 200) unless defined $slurm_label;
-
+   return(Log('ignoring'), 200) unless defined $slurm_label;
    my $slurm_request = generate_slurm_request($slurm_label);
    my $ans = `sbatch $slurm_request /opt/github_ephemeral.sbatch $org $slurm_label 2>&1`;
+   chomp $ans;
    if($ans =~ /Submitted batch job \d+/){
-      return("$ans ($slurm_request)", 200);
+      return(Log("$ans ($slurm_request)"), 200);
    } else {
-      return("Error submitting job for ($slurm_request)\n$ans", 501);
+      return(Log("Error submitting job for ($slurm_request) ($ans)"), 501);
    }
+}
+
+
+sub Log {
+   my $msg = shift;
+   my $date = localtime();
+   warn "[$date] $msg\n";
+   return $msg;
 }
 
 sub generate_slurm_request {
    my (undef, $params) = split(/\:/, shift);
    my @list = split(/\+/, $params);
-   my (@gres, @const);
-   push @const, 'docker';
+   my @gres = ('github');
+   my @const = ('docker');
    for(@list){
       if(/gpu_(\w+)/){
 	 push @gres, "gpu:$1";

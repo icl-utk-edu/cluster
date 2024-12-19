@@ -5,7 +5,7 @@ RUN dnf -y update
 # Slurm
 RUN dnf -y install epel-release && \
     dnf -y install slurm munge sudo
-COPY slurm.conf /etc/slurm/
+COPY --from=slurm slurm.conf /etc/slurm/
 COPY --from=munge --chown=munge:munge munge.key /etc/munge/
 
 ARG GITHUB_UID

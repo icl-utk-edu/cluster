@@ -25,17 +25,6 @@ RUN dnf -y install rsyslog && \
     echo '*.* @headnode' > /etc/rsyslog.d/remote.conf && \
     echo empty /var/lib/rsyslog/ >> /etc/rwtab
 
-# Slurm
-RUN dnf -y install epel-release && \
-    dnf -y install slurm-slurmd slurm-pam_slurm munge pmix-devel
-RUN touch /etc/slurm/gres.conf
-RUN echo files /etc/slurm/gres.conf >> /etc/rwtab
-COPY --from=etc slurm/slurm.conf slurm/cgroup.conf /etc/slurm/
-COPY slurmd.service /usr/lib/systemd/system/
-COPY slurmd_startup /usr/sbin/
-RUN systemctl enable munge
-RUN useradd --no-create-home --system -g daemon --uid 9 slurm
-COPY --from=etc --chown=munge:munge munge/munge.key /etc/munge/
 
 # LDAP for user accounts and authentication
 RUN dnf -y install openldap-clients sssd sssd-ldap authselect && \
@@ -49,6 +38,20 @@ COPY --from=common ldapuser_password.txt /tmp/
 RUN cat /tmp/ldapuser_password.txt | xargs -Iggg sed -i 's/PASSWORD/ggg/' /etc/sssd/sssd.conf
 RUN rm /tmp/ldapuser_password.txt
 COPY --from=common ipa-ca.crt /etc/openldap/certs/
+
+
+# Slurm
+RUN dnf -y install epel-release && \
+    dnf -y install slurm-slurmd slurm-pam_slurm munge pmix-devel
+RUN touch /etc/slurm/gres.conf
+RUN echo files /etc/slurm/gres.conf >> /etc/rwtab
+COPY --from=etc slurm/slurm.conf slurm/cgroup.conf /etc/slurm/
+COPY slurmd.service /usr/lib/systemd/system/
+COPY slurmd_startup /usr/sbin/
+RUN systemctl enable munge
+RUN useradd --no-create-home --system -g daemon --uid 9 slurm
+COPY --from=etc --chown=munge:munge munge/munge.key /etc/munge/
+
 
 RUN dnf -y install chrony
 COPY chrony.conf /etc/
@@ -100,7 +103,7 @@ RUN --mount=type=cache,target=/var/cache/dnf \
        dnf -y install cuda-12.5.0 cuda-drivers-fabricmanager-555; \
     fi
 RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
-RUN if [ "$KERNEL" != "3" ];then systemctl enable nvidia-persistenced nvidia-fabricmanager; fi
+RUN if [ "$KERNEL" != "3" ];then systemctl enable nvidia-persistenced; fi
 
 # Install rocm
 COPY rocm.repo /etc/yum.repos.d/
@@ -142,12 +145,12 @@ COPY rc.local /etc/rc.d/rc.local
 RUN systemctl enable rc-local
 COPY set_ipoib /usr/local/bin/
 
-RUN dnf -y install autofs && \
-    systemctl enable autofs && \
-    rm -rf /etc/auto.* && \
-    echo "/nfs /etc/auto.nfs" > /etc/auto.master && \
-    mkdir -p /nfs
-COPY auto.nfs /etc/
+#RUN dnf -y install autofs && \
+#    systemctl enable autofs && \
+#    rm -rf /etc/auto.* && \
+#    echo "/nfs /etc/auto.nfs" > /etc/auto.master && \
+#    mkdir -p /nfs
+#COPY auto.nfs /etc/
 
 RUN echo "files /etc/hostname" >> /etc/rwtab
 RUN echo "files /var/lib/systemd" >> /etc/rwtab
@@ -212,8 +215,11 @@ RUN echo kernel.core_pattern=core > /etc/sysctl.d/99-coredump.conf
 # SSH keys
 COPY --from=etc --chmod=0600 ssh/ssh_host_rsa_key /etc/ssh/
 COPY --from=ssh_root *.pub /root/.ssh/authorized_keys
+COPY authorized_keys /tmp/
+RUN cat /tmp/authorized_keys >> /root/.ssh/authorized_keys && \
+    rm /tmp/authorized_keys
 
-# pam_adopt slurm config
+# Slurm PAM adopt config
 RUN touch /etc/pam.d/slurm
 RUN echo "files /etc/pam.d/slurm" >> /etc/rwtab  # slurmd_startup writes here
 COPY pam.d-password-auth /etc/pam.d/password-auth

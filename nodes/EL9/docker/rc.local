@@ -27,10 +27,6 @@ if touch /var/lib/docker/test; then
    systemctl start docker
 fi
 
-# Start slurmd
-# Needs to be after hostname is correctly set
-systemctl start slurmd
-
 # If hosting a zfs filesystem mounted on /home, exports it via NFS
 # Otherwise mount a remote NFS as /home
 if [[ `zfs list -H -o mountpoint | grep '^/home$'` ]]; then
@@ -63,10 +59,11 @@ fi
 
 
 # Stop the NV daemons unless the nvidia module is loaded
-awk '{print $1}' /proc/modules | grep '^nvidia$' || \
-	systemctl stop nvidia-persistenced && \
-	systemctl stop nvidia-fabricmanager
-
+if grep '^nvidia ' /proc/modules; then
+   /usr/bin/nv-fabricmanager -c /usr/share/nvidia/nvswitch/fabricmanager.cfg &
+else
+   systemctl stop nvidia-persistenced
+fi
 
 # Disable managment of the network interface used for the network boot.
 # This avoids deadlock when the network link goes down and NM unconfigures the IP address.
@@ -75,6 +72,10 @@ nmcli device set $DEV managed no
 
 # Start nrpe without systemd interference
 sudo -u nrpe /usr/sbin/nrpe -c /etc/nagios/nrpe.cfg -d
+
+# Start slurmd
+# Needs to be after hostname is correctly set
+systemctl start slurmd
 
 # Do everything else
 for script in $(find /etc/rc.d/rc3.d -type f | sort);do
