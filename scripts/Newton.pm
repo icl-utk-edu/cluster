@@ -564,9 +564,10 @@ sub node_install_pxe {
   my @nodes = nodes(type=>'system');
   for(@nodes){
     my $node = $_->{name};
-    my $role = $_->{role};
-    my ($base) = split(/\s+/, $_->{role});
-    my $hash = md5_hex($_->{role});
+    my $role = $_->{role} || '';
+    my ($base) = split(/\s+/, $role);
+    $base ||= '';
+    my $hash = md5_hex($role);
     my $config = "${basedir}nodes/$base/images/$hash/config.ipxe";
     unless(defined($base) and -e $config){
       warn "Warning: Node role '$role' not found for node '$node'!\n";
@@ -598,7 +599,7 @@ sub node_install_nagios {
 	  name => $name,
 	  ip => Newton::ipaddr($ip),
 	  parent => $parent,
-	  notifications_enabled => 1,
+	  notifications_enabled => ($type ne 'bmc')?1:0,
 	  hostgroups => "$set,$type",
           };
   }

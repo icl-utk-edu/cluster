@@ -3,6 +3,10 @@
 use strict;
 use warnings;
 
+my @supported_labels = qw/cpu_intel cpu_amd gpu_intel gpu_nvidia gpu_amd infiniband/;
+
+my %org_tokens = map {/^GHPAT_(.+)$/ ? ($1=>$ENV{$_}) : ()} keys %ENV;
+
 github_meta_runner->new(80)->run();
 
 
@@ -19,53 +23,77 @@ sub handle_request {
    my $self = shift;
    my $cgi  = shift;
    my ($message, $code) = response($cgi);
+   $code ||= 200;
+   my $date = localtime();
+   warn "[$date] $message\n";
    print "HTTP/1.0 $code\r\n";
    print $cgi->header();
    print $message;
 }
 
 sub response {
-   my $cgi = shift;
-   my $raw = $cgi->param('payload') || return Log('payload error');
-   my $payload = decode_json($raw) || return Log('decode error');
-   my $org = $payload->{organization}->{login};
-   my $action = $payload->{action};
-   return(Log('ignoring'), 200) unless $action eq 'queued';
-   my $job = $payload->{workflow_job};
-   return(Log('job not found'), 501) unless defined $job and ref($job);
-   my $labels = $job->{labels};
-   return(Log('no labels found'), 501) unless defined $labels and ref($labels);
-   my ($slurm_label) = grep /^slurm/, @$labels;
-   return(Log('ignoring'), 200) unless defined $slurm_label;
-   my $slurm_request = generate_slurm_request($slurm_label);
-   my $ans = `sbatch $slurm_request /opt/github_ephemeral.sbatch $org $slurm_label 2>&1`;
+   my $job = decode_job(shift)
+      || return('Payload error', 501);
+   my $handler = {
+	   queued    => \&do_queued,
+           completed => \&do_completed,
+           }->{ $job->{action} } || \&do_ignore;
+   my ($result, $code) = &{$handler}($job);
+   return "$job->{org} $job->{repo} $result", $code;
+}
+
+sub do_queued {
+   my $job = shift;
+   my $org = $job->{org};
+   my $repo = $job->{repo};
+   my $slurm_request = generate_slurm_request($job->{labels});
+   my $label_list = join(',', @{ $job->{labels} });
+   my $token = $org_tokens{$org};
+   return("Ignoring unknown ORG=$org") unless defined $token;
+   my $ans = `sbatch $slurm_request -J CI_${org}_${repo} /opt/github_ephemeral.sbatch $org $label_list $token 2>&1`;
    chomp $ans;
    if($ans =~ /Submitted batch job \d+/){
-      return(Log("$ans ($slurm_request)"), 200);
+      return "$ans ($slurm_request)";
    } else {
-      return(Log("Error submitting job for ($slurm_request) ($ans)"), 501);
+      return "Error submitting job for ($slurm_request) ($ans)", 501;
    }
 }
 
+sub do_completed {
+   my $job = shift;
+   return "Job $job->{name} = $job->{conclusion}";
+}
 
-sub Log {
-   my $msg = shift;
-   my $date = localtime();
-   warn "[$date] $msg\n";
-   return $msg;
+sub do_ignore {
+   my $job = shift;
+   return "Ignoring action $job->{action}";
+}
+
+sub decode_job {
+   my $cgi = shift;
+   my $raw = $cgi->param('payload') || return;
+   my $payload = decode_json($raw) || return;
+   my $job = $payload->{workflow_job};
+   return unless defined $job and ref($job);
+   $job->{org} = $payload->{organization}->{login};
+   $job->{repo} = $payload->{repository}->{name};
+   $job->{action} = $payload->{action};
+   return $job;
 }
 
 sub generate_slurm_request {
-   my (undef, $params) = split(/\:/, shift);
-   my @list = split(/\+/, $params);
+   my $labels = shift;
    my @gres = ('github');
    my @const = ('docker');
-   for(@list){
+   for(@$labels){
+      my $label = $_;
+      next unless grep /^$label$/, @supported_labels;
       if(/gpu_(\w+)/){
 	 push @gres, "gpu:$1";
-      }
-      if(/^(cpu_\w+)$/){
+      } elsif(/^(cpu_\w+)$/){
 	 push @const, $1;
+      } else {
+	 push @const, $_;
       }
    }
    my @out = ( '-C', join(',', @const) );

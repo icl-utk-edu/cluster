@@ -18,10 +18,11 @@ docker build -t $NAME \
 
 docker rm -f $NAME || true
 
-export TOKEN=`grep github_runner_pat /cluster/secrets | awk '{print $2}'`
+#export TOKEN=`grep github_runner_pat /cluster/secrets | awk '{print $2}'`
+TOKENS=$(grep GHPAT_ /cluster/secrets | sed 's/^/-e /')
 
 docker run --name $NAME \
 	--restart=unless-stopped -d --net=web \
-	-e ORG -e TOKEN \
+	$TOKENS \
 	$NAME
 
