@@ -15,7 +15,7 @@
   notify: "Restart nrpe"
 
 - name: Custom nagios plugins
-  copy: src=custom_plugins dest=/etc/nagios/  mode=755
+  copy: src=custom_plugins/ dest=/etc/nagios/plugins/  mode=755
 
 - name: Enable nrpe service
   service: name=nrpe state=started enabled=yes
