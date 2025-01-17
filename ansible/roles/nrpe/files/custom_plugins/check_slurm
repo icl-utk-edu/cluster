@@ -1,0 +1,19 @@
+#!/usr/bin/perl
+
+# Check slurm for error states
+
+use strict;
+use warnings;
+use lib '/usr/lib64/nagios/plugins';
+use utils '%ERRORS';
+
+my $problems = `sinfo -hR`;
+
+finish('CRITICAL', "Problem: $problems") if $problems;
+finish('OK', "No problems found");
+
+sub finish {
+  my ($code, $msg) = @_;
+  print "Slurm $code: $msg\n";
+  exit $ERRORS{$code};
+  }
