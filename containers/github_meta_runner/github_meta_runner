@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-my @supported_labels = qw/cpu_intel cpu_amd gpu_intel gpu_nvidia gpu_amd infiniband/;
+my @supported_labels = qw/self-hosted cpu cpu_intel cpu_amd gpu_intel gpu_nvidia gpu_amd infiniband/;
 
 my %org_tokens = map {/^GHPAT_(.+)$/ ? ($1=>$ENV{$_}) : ()} keys %ENV;
 
@@ -47,9 +47,10 @@ sub do_queued {
    my $org = $job->{org};
    my $repo = $job->{repo};
    my $slurm_request = generate_slurm_request($job->{labels});
+   return "Ignoring job" unless defined $slurm_request;
    my $label_list = join(',', @{ $job->{labels} });
    my $token = $org_tokens{$org};
-   return("Ignoring unknown ORG=$org") unless defined $token;
+   return("Ignoring unknown org") unless defined $token;
    my $ans = `sbatch $slurm_request -J CI_${org}_${repo} /opt/github_ephemeral.sbatch $org $label_list $token 2>&1`;
    chomp $ans;
    if($ans =~ /Submitted batch job \d+/){
@@ -90,12 +91,12 @@ sub generate_slurm_request {
       next unless grep /^$label$/, @supported_labels;
       if(/gpu_(\w+)/){
 	 push @gres, "gpu:$1";
-      } elsif(/^(cpu_\w+)$/){
-	 push @const, $1;
       } else {
 	 push @const, $_;
       }
    }
+   return if @const == 1 and @gres == 1;
+   @const = grep {$_ ne 'cpu' and $_ ne "self-hosted"} @const;
    my @out = ( '-C', join(',', @const) );
    push(@out, '--gres', join(',', @gres)) if @gres;
    return join(' ', @out);

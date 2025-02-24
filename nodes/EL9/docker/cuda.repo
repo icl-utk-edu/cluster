@@ -1,5 +1,6 @@
 [cuda]
 name=cuda
+#baseurl=https://headnode.icl.utk.edu/cuda/repos/rhel9/x86_64
 baseurl=http://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64
 enabled=1
 gpgcheck=1

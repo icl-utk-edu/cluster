@@ -40,6 +40,7 @@ if($available){
     my ($name, $role) = @$_;
     $role = 'undefined' unless defined $role;
     if(defined $distinct){
+      next if $role eq 'undefined';
       print "$role\n" unless $done{$role}++;
       } else {
       print "Role for $name is $role\n";

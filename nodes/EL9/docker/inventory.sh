@@ -13,8 +13,8 @@ $ENV{PATH} = '/bin:/usr/bin:/sbin:/usr/sbin';
 #check_deps();
 
 my $option = shift @ARGV || '';
-#selfcheck() if $option eq '--check';
-#check_update() unless $option eq '--noupdate';
+selfcheck() if $option eq '--check';
+check_update() unless $option eq '--noupdate';
 
 my $hostid = dmi('system-uuid') . dmi('baseboard-serial-number') . dmi('system-serial-number');
 $hostid = getMAC() if $hostid !~ /\S+/;
@@ -147,7 +147,7 @@ sub getRAM {
 }
 
 sub getGPU {
-  my @devs = (nvidia_GPU(), amd_GPU());
+  my @devs = (nvidia_GPU(), amd_GPU(), intel_GPU());
   my @numbers = qw/One Two Three Four Five Six Seven Eight/;
   my %gpu;
   my $product;
@@ -155,6 +155,13 @@ sub getGPU {
     $gpu{$_}++;
   }
   return join("<br>", map {my $num=$numbers[$gpu{$_}-1]; "$num $_"} keys %gpu);
+}
+
+sub intel_GPU {
+  return map {chomp; s/Graphics//;$_}
+    map {s/\([^\)]*\)//g;$_}
+    map {s/^[\d\.]+:\s*//;$_}
+    grep /^\d+\.\d+:.*Intel/, `clinfo -l --raw`;
 }
 
 sub nvidia_GPU {

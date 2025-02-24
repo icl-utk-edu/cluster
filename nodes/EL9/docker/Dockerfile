@@ -99,8 +99,8 @@ RUN --mount=type=cache,target=/var/cache/dnf \
        dnf -y module install nvidia-driver:545-dkms && \
        dnf -y install cuda-11.8.0 cuda-drivers-fabricmanager-545; \
     elif [ $CUDAVER = "12" ]; then \
-       dnf -y module install nvidia-driver:555-dkms && \
-       dnf -y install cuda-12.5.0 cuda-drivers-fabricmanager-555; \
+       dnf -y install cuda-12-8 && \
+       dnf -y install cuda-drivers-fabricmanager; \
     fi
 RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
 RUN if [ "$KERNEL" != "3" ];then systemctl enable nvidia-persistenced; fi
@@ -195,6 +195,7 @@ RUN echo "nrpe ALL = (root) NOPASSWD: /etc/nagios/plugins/check_temperature" > /
 
 
 COPY inventory.sh /etc/cron.daily/
+RUN echo "files /etc/cron.daily/inventory.sh" >> /etc/rwtab
 
 RUN dnf -y install tcpdump net-tools lz4 man-pages colordiff the_silver_searcher rust smartmontools lsof
 RUN dnf clean all
