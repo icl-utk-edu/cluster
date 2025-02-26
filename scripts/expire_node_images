@@ -11,10 +11,14 @@ CURRENT=`stat -c '%i' $BASEDIR/nodes/*/images/*/rootfs/`
 
 for image in `ls -d $BASEDIR/nodes/*/images/*/rootfs-*`; do
    image_inode=`stat -c '%i' $image`
-   for active_inode in $ACTIVE $CURRENT; do
-      [ $image_inode = $active_inode ] && continue 2
+   for active_inode in $ACTIVE; do
+      [ $image_inode = $active_inode ] && echo Ignoring active $image && continue 2
    done
-   read -p "Remove image $image?"
+   for active_inode in $CURRENT; do
+      [ $image_inode = $active_inode ] && echo Ignoring current $image && continue 2
+   done
+   echo Removing $image
+   #read -p "Remove image $image?"
    rm -rf $image
 done
 
