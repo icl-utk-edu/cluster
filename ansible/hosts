@@ -1,3 +1,2 @@
-[clusters]
-sorbitol.icl.utk.edu
-
+[servers]
+headnode

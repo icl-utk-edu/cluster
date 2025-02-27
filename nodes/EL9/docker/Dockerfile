@@ -99,19 +99,25 @@ RUN --mount=type=cache,target=/var/cache/dnf \
        dnf -y module install nvidia-driver:545-dkms && \
        dnf -y install cuda-11.8.0 cuda-drivers-fabricmanager-545; \
     elif [ $CUDAVER = "12" ]; then \
-       dnf -y install cuda-12-8 && \
-       dnf -y install cuda-drivers-fabricmanager; \
+       dnf -y install cuda-toolkit-12-8 && \
+       dnf -y module install nvidia-driver:565-dkms && \
+       dnf -y install nvidia-fabric-manager ; \
     fi
 RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
 RUN if [ "$KERNEL" != "3" ];then systemctl enable nvidia-persistenced; fi
+
+RUN dnf -y install dkms && \
+    dkms autoinstall -k `cat /boot/kver`
 
 # Install rocm
 COPY rocm.repo /etc/yum.repos.d/
 RUN --mount=type=cache,target=/var/cache/dnf \
        if [ "$KERNEL" != "3" ]; then \
-       dnf -y --enablerepo=crb install perl-File-BaseDir perl-URI-Encode && \
-       dnf -y install amdgpu-dkms rocm-hip-sdk rocm-dkms hip-nvcc rocprim rocm-ml-sdk rocm-openmp-sdk rocm-opencl-sdk rocm-developer-tools ; \
+       dnf -y --enablerepo=crb install amdgpu-dkms rocm ; \
     fi
+
+#dnf -y --enablerepo=crb install perl-File-BaseDir perl-URI-Encode && \
+#rocm-hip-sdk rocm-dkms hip-nvcc rocprim rocm-ml-sdk rocm-openmp-sdk rocm-opencl-sdk rocm-developer-tools ; \
 
 RUN dnf -y install https://zfsonlinux.org/epel/zfs-release-2-2$(rpm --eval "%{dist}").noarch.rpm
 RUN dnf -y install zfs

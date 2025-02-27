@@ -2,16 +2,27 @@
 
 # Install the cluster headnode
 
-# cd / && git clone git@github.com/icl-utk-edu/cluster
+# Optionally set up ZFS for /cluster filesystem
+dnf -y install https://zfsonlinux.org/epel/zfs-release-2-2$(rpm --eval "%{dist}").noarch.rpm
+zpool create mnt sda
+zfs set dedup=on mnt
+zfs set compression=on mnt
+zfs create -o mountpoint=/cluster mnt/cluster
+zfs create -o mountpoint=/var/lib/docker mnt/docker
 
 yum -y install ipa-client
 ipa-client-install --server vm0.icl.utk.edu --domain icl.utk.edu  --mkhomedir -p gragghia
 
+# Checkout cluster repo with appropriate ssh keys
+git clone git@github.com/icl-utk-edu/cluster /cluster
+
+# Need to manually create/restore the following files:
+# /cluster/cluster.db
+# /cluster/nodes/common/ldapuser_password.txt
+# /cluster/secrets
+
 yum -y install epel-release
 yum -y install ansible
-
-
-
 cd /cluster/ansible
 ansible-playbook -l headnode site.yaml
 
