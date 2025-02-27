@@ -26,6 +26,9 @@ git clone git@github.com/icl-utk-edu/cluster /cluster
 # /cluster/nodes/common/ldapuser_password.txt
 # /cluster/secrets
 
+echo -n "*.cluster,10.0.0.* " > /etc/ssh/ssh_known_hosts
+cat /etc/ssh/ssh_host_rsa_key.pub >> /etc/ssh/ssh_known_hosts
+
 yum -y install epel-release
 yum -y install ansible
 cd /cluster/ansible
