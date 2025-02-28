@@ -136,7 +136,7 @@ RUN rm /etc/NetworkManager/system-connections/*
 COPY --from=common motd /etc/
 
 ARG MODULE=tcl
-RUN if [ "$MODULE" == "tcl" ]; then dnf -y install environment-modules; fi
+RUN dnf -y install environment-modules
 COPY env-$MODULE.* prompt.sh /etc/profile.d/
 
 COPY docker.repo /etc/yum.repos.d/
