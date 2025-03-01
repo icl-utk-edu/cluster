@@ -7,21 +7,27 @@ if [ ! `grep SELINUX=disabled /etc/selinux/config` ]; then
    shutdown -r now
 fi
 
-# Optionally set up ZFS for /cluster filesystem
+# Install required packages
 dnf -y install https://zfsonlinux.org/epel/zfs-release-2-2$(rpm --eval "%{dist}").noarch.rpm
-zpool create mnt sda
-zfs set dedup=on mnt
-zfs set compression=on mnt
-zfs create -o mountpoint=/cluster mnt/cluster
-zfs create -o mountpoint=/var/lib/docker mnt/docker
+dnf -y install epel-release
+dnf -y install zfs ipa-client git ansible
 
-yum -y install ipa-client
-ipa-client-install --server vm0.icl.utk.edu --domain icl.utk.edu  --mkhomedir -p gragghia
+# Set up ZFS for /cluster filesystem
+zpool create main mirror sda sdb sdc
+zfs set dedup=on main
+zfs set compression=on main
+zfs create -o mountpoint=/cluster main/cluster
+zfs create -o mountpoint=/var/lib/docker main/docker
+
+# Enable LDAP authentication
+ipa-client-install --server vm0.icl.utk.edu --domain icl.utk.edu  --mkhomedir -p admin
 
 # Checkout cluster repo with appropriate ssh keys
+ssh-keygen -f /root/.ssh/id_rsa -N ''
 git clone git@github.com/icl-utk-edu/cluster /cluster
 
 # Need to manually create/restore the following files:
+# /etc/ssh/ssh_host_key*
 # /cluster/cluster.db
 # /cluster/nodes/common/ldapuser_password.txt
 # /cluster/secrets
@@ -29,12 +35,8 @@ git clone git@github.com/icl-utk-edu/cluster /cluster
 echo -n "*.cluster,10.0.0.* " > /etc/ssh/ssh_known_hosts
 cat /etc/ssh/ssh_host_rsa_key.pub >> /etc/ssh/ssh_known_hosts
 
-ssh-keygen -f /root/.ssh/id_rsa -N ''
-
-yum -y install epel-release
-yum -y install ansible
 cd /cluster/ansible
-ansible-playbook -l headnode site.yaml
+ansible-playbook headnode.yml
 
 
 
