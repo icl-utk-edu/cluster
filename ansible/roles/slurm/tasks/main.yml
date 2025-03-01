@@ -21,7 +21,7 @@
     - /var/log/slurm
 
 - name: Configure slurm
-  copy: src=slurm.conf dest=/etc/slurm/ force=false
+  copy: src=slurm.conf dest=/etc/slurm/
   notify: "Restart slurmctld"
 
 - name: Configure slurm cgroups

@@ -86,7 +86,7 @@ if(keys %features){
 my $host = `hostname -s`;
 chomp $host;
 my $pam_conf = "account required pam_slurm_adopt.so nodename=$host\n";
-$pam_conf = "account required pam_unix.so\n" if $host eq 'histamine0';
+$pam_conf = "account required pam_unix.so\n" if $host eq 'methane';
 
 open(OUT, "+> /etc/pam.d/slurm") or die $!;
 flock(OUT, 2) or die $!;

@@ -1,7 +1,7 @@
 [cuda]
 name=cuda
 #baseurl=https://headnode.icl.utk.edu/cuda/repos/rhel9/x86_64
-baseurl=http://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64
+baseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64
 enabled=1
 gpgcheck=1
-gpgkey=http://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/D42D0685.pub
+gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/D42D0685.pub

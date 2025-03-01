@@ -30,7 +30,7 @@ RUN dkms autoinstall -k `cat /boot/kver` && dkms status
 RUN dracut --force --add nfs --no-hostonly --kver `cat /boot/kver`
 RUN chmod 644 /boot/initramfs*.img
 
-RUN mkdir /root/.ssh && touch /root/.ssh/authorized_keys
+#RUN mkdir /root/.ssh && touch /root/.ssh/authorized_keys
 
 RUN yum clean all
 
