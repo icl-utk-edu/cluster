@@ -6,6 +6,10 @@
 BASEDIR=$(cluster_basedir)
 
 ACTIVE=`runall -rl 'stat -c "%i" /' | awk '{print $2}' | sort -u`
+if [ "$ACTIVE" = "" ]; then
+	echo Error: no active images found!
+	exit 1
+fi
 
 CURRENT=`stat -c '%i' $BASEDIR/nodes/*/images/*/rootfs/`
 
