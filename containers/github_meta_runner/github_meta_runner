@@ -3,8 +3,6 @@
 use strict;
 use warnings;
 
-my @supported_labels = qw/self-hosted cpu cpu_intel cpu_amd gpu_intel gpu_nvidia gpu_amd infiniband/;
-
 my %org_tokens = map {/^GHPAT_(.+)$/ ? ($1=>$ENV{$_}) : ()} keys %ENV;
 
 github_meta_runner->new(80)->run();
@@ -84,22 +82,26 @@ sub decode_job {
 
 sub generate_slurm_request {
    my $labels = shift;
-   my @gres = ('github');
-   my @const = ('docker');
+   my @ok_ignore = qw/self-hosted cpu/;
+   my @ok_features = qw/cpu_intel cpu_amd infiniband gpu_radeonvii/;
+   my @ok_gres = qw/gpu_intel gpu_nvidia gpu_amd/;
+   my $gres = 'github';
+   my $const = 'docker';
    for(@$labels){
       my $label = $_;
-      next unless grep /^$label$/, @supported_labels;
-      if(/gpu_(\w+)/){
-	 push @gres, "gpu:$1";
+      if(grep /^$label$/, @ok_ignore){
+              next;
+      } elsif(grep /^$label$/, @ok_features){
+              $const .= ",$label";
+      } elsif(grep /^$label$/, @ok_gres){
+              my ($gpuname) = $label =~ /gpu_(\w+)/;
+              $gres .= ",gpu:$gpuname";
       } else {
-	 push @const, $_;
+              print "label not found: $label\n";
+              return;
       }
    }
-   return if @const == 1 and @gres == 1;
-   @const = grep {$_ ne 'cpu' and $_ ne "self-hosted"} @const;
-   my @out = ( '-C', join(',', @const) );
-   push(@out, '--gres', join(',', @gres)) if @gres;
-   return join(' ', @out);
+   return "-C $const --gres $gres";
 }
 
 1;
