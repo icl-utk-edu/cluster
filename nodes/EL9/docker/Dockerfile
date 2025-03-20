@@ -102,6 +102,9 @@ RUN --mount=type=cache,target=/var/cache/dnf \
        dnf -y install cuda-toolkit-12-8 && \
        dnf -y module install nvidia-driver:565-dkms && \
        dnf -y install nvidia-fabric-manager ; \
+       for lib in `find /usr/lib64/libnvidia-*.so.565*`; do \
+          ln -s $lib ${lib//\.so\.565*/\.so} ; \
+       done ; \
     fi
 RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
 RUN if [ "$KERNEL" != "3" ];then systemctl enable nvidia-persistenced; fi
@@ -221,7 +224,7 @@ RUN echo kernel.core_pattern=core > /etc/sysctl.d/99-coredump.conf
 
 # SSH keys
 COPY --from=etc --chmod=0600 ssh/ssh_host_rsa_key /etc/ssh/
-COPY --from=ssh_root *.pub /root/.ssh/authorized_keys
+COPY --from=ssh_root id_rsa.pub /root/.ssh/authorized_keys
 COPY authorized_keys /tmp/
 RUN cat /tmp/authorized_keys >> /root/.ssh/authorized_keys && \
     rm /tmp/authorized_keys
