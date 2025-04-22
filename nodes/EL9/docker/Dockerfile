@@ -13,6 +13,7 @@ RUN dnf -y install openssh-server && \
 # Prepare for direct-to-root ssh access
 RUN ssh-keygen -N '' -f /root/.ssh/id_rsa
 COPY sshd_custom.conf /etc/ssh/sshd_config.d/
+RUN echo "AllowGroups icl admins root" > /etc/ssh/sshd_config.d/groups.conf
 COPY --from=etc ssh/ssh_known_hosts /etc/ssh/
 RUN systemctl disable sshd-keygen@ed25519 sshd-keygen@ecdsa
 COPY authorized_keys /root/.ssh/authorized_keys
@@ -84,7 +85,7 @@ RUN if [ $KERNEL = "default" ]; then \
           intel-metrics-library intel-igc-core intel-igc-cm \
           libva libva-utils intel-gmmlib libmetee intel-gsc intel-ocloc \
           intel-igc-opencl-devel level-zero-devel intel-gsc-devel libmetee-devel level-zero-devel \
-          libdrm hwinfo clinfo ; \
+          libdrm hwinfo clinfo intel-ocloc; \
     fi
 
 
@@ -234,4 +235,10 @@ RUN touch /etc/pam.d/slurm
 RUN echo "files /etc/pam.d/slurm" >> /etc/rwtab  # slurmd_startup writes here
 COPY pam.d-password-auth /etc/pam.d/password-auth
 #RUN sed -i -e '/systemd/ s/^#*/#/' /etc/pam.d/* /etc/authselect/*-auth
+
+
+# Fail2ban
+RUN dnf -y install fail2ban
+COPY jail.local /etc/fail2ban/
+COPY fail2ban /etc/rc.d/rc3.d/
 

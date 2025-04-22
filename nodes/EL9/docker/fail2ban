@@ -1,0 +1,7 @@
+#!/bin/bash
+
+host=`hostname -s`;
+if [ "$host" = "methane" ]; then
+   systemctl start fail2ban
+fi
+

@@ -20,7 +20,7 @@ zfs create -o mountpoint=/cluster main/cluster
 zfs create -o mountpoint=/var/lib/docker main/docker
 
 # Enable LDAP authentication
-ipa-client-install --server vm0.icl.utk.edu --domain icl.utk.edu  --mkhomedir -p admin
+ipa-client-install --server directory.icl.utk.edu --domain icl.utk.edu  --mkhomedir -p admin
 
 # Checkout cluster repo with appropriate ssh keys
 ssh-keygen -f /root/.ssh/id_rsa -N ''
