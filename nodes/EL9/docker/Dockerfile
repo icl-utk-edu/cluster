@@ -101,10 +101,10 @@ RUN --mount=type=cache,target=/var/cache/dnf \
        dnf -y install cuda-11.8.0 cuda-drivers-fabricmanager-545; \
     elif [ $CUDAVER = "12" ]; then \
        dnf -y install cuda-toolkit-12-8 && \
-       dnf -y module install nvidia-driver:565-dkms && \
-       dnf -y install nvidia-fabric-manager ; \
-       for lib in `find /usr/lib64/libnvidia-*.so.565*`; do \
-          ln -s $lib ${lib//\.so\.565*/\.so} ; \
+       dnf -y module install nvidia-driver:570-dkms && \
+       dnf -y install nvidia-fabric-manager nvidia-container-toolkit; \
+       for lib in `find /usr/lib64/libnvidia-*.so.570*`; do \
+          ln -s $lib ${lib//\.so\.570*/\.so} ; \
        done ; \
     fi
 RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
@@ -117,7 +117,7 @@ RUN dnf -y install dkms && \
 COPY rocm.repo /etc/yum.repos.d/
 RUN --mount=type=cache,target=/var/cache/dnf \
        if [ "$KERNEL" != "3" ]; then \
-       dnf -y --enablerepo=crb install amdgpu-dkms rocm ; \
+       dnf -y --enablerepo=crb install amdgpu-dkms rocm rocm-llvm-devel; \
     fi
 
 #dnf -y --enablerepo=crb install perl-File-BaseDir perl-URI-Encode && \
@@ -131,9 +131,10 @@ RUN mkdir -p /apps /data
 RUN dkms autoinstall -k `cat /boot/kver` && dkms status
 
 # Build initrd
+RUN rm -f /boot/initramfs*.img
 RUN dracut --force --add nfs --no-hostonly --kver `cat /boot/kver`
 RUN chmod 644 /boot/initramfs*.img
-RUN ls /lib/modules | xargs -Iggg cp /lib/modules/ggg/vmlinuz /boot/vmlinuz-ggg
+RUN ls /lib/modules/*/vmlinuz | xargs -n1 dirname | xargs -n1 basename | xargs -Iggg cp /lib/modules/ggg/vmlinuz /boot/vmlinuz-ggg
 
 RUN rm /etc/NetworkManager/system-connections/*
 
@@ -181,7 +182,7 @@ RUN wget -O - https://github.com/zfsonlinux/zfs-auto-snapshot/archive/upstream/1
 COPY cron.d /etc/cron.d
 
 RUN echo "%admins ALL=(ALL) ALL" > /etc/sudoers.d/admins
-RUN echo "%papi dopamine,serotonin=(ALL) ALL" > /etc/sudoers.d/papi
+RUN echo "%papi histamine*,dopamine,serotonin=(ALL) ALL" > /etc/sudoers.d/papi
 
 # Remove memlock limit for MPI
 COPY limits.conf /etc/security/
@@ -241,4 +242,5 @@ COPY pam.d-password-auth /etc/pam.d/password-auth
 RUN dnf -y install fail2ban
 COPY jail.local /etc/fail2ban/
 COPY fail2ban /etc/rc.d/rc3.d/
+RUN systemctl disable firewalld
 

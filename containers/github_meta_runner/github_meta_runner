@@ -49,7 +49,7 @@ sub do_queued {
    my $label_list = join(',', @{ $job->{labels} });
    my $token = $org_tokens{$org};
    return("Ignoring unknown org") unless defined $token;
-   my $ans = `sbatch $slurm_request -J CI_${org}_${repo} /opt/job.sbatch $org $label_list $token 2>&1`;
+   my $ans = `sbatch $slurm_request -J ${org}_${repo} -t 9:00:00 /opt/job.sbatch $org $label_list $token 2>&1`;
    chomp $ans;
    if($ans =~ /Submitted batch job \d+/){
       return "$ans ($slurm_request)";
