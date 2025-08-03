@@ -88,11 +88,11 @@ RUN if [ $KERNEL = "default" ]; then \
           libdrm hwinfo clinfo intel-ocloc; \
     fi
 
-
 RUN echo "keepcache=1" >> /etc/dnf/dnf.conf
 # Install CUDA
 ARG CUDAVER=11
 COPY cuda.repo /etc/yum.repos.d/
+
 RUN --mount=type=cache,target=/var/cache/dnf \
     if [ "$KERNEL" == "3" ]; then \
        echo Not installing CUDA ; \
@@ -100,9 +100,9 @@ RUN --mount=type=cache,target=/var/cache/dnf \
        dnf -y module install nvidia-driver:545-dkms && \
        dnf -y install cuda-11.8.0 cuda-drivers-fabricmanager-545; \
     elif [ $CUDAVER = "12" ]; then \
-       dnf -y install cuda-toolkit-12-8 && \
-       dnf -y module install nvidia-driver:570-dkms && \
-       dnf -y install nvidia-fabric-manager nvidia-container-toolkit; \
+       DRIVER=570.133.20-1 && \
+       dnf -y module enable nvidia-driver:570-dkms && \
+       dnf -y install cuda-toolkit-12-8 nvidia-fabric-manager-$DRIVER nvidia-container-toolkit nvidia-driver-$DRIVER.el9 nvidia-driver-cuda-$DRIVER.el9 nvidia-modprobe-$DRIVER.el9 && \
        for lib in `find /usr/lib64/libnvidia-*.so.570*`; do \
           ln -s $lib ${lib//\.so\.570*/\.so} ; \
        done ; \

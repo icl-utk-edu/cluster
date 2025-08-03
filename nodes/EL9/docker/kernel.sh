@@ -20,7 +20,7 @@ elif [[ $VERSION = 'default' ]]; then
    dnf -y --enablerepo=vault\* install kernel-$KVER kernel-devel-matched-$KVER
    #KVER=`rpm -q kernel | sed 's/kernel-//'`
 elif [[ $VERSION = '61' ]]; then
-   KVER=6.1.129-1.el9.elrepo.x86_64
+   KVER=6.1.147-1.el9.elrepo.x86_64
    dnf -y --enablerepo=elrepo-kernel-archive install kernel-lt-$KVER kernel-lt-devel-$KVER
 else
    echo "Invalid kernel version specified!"
