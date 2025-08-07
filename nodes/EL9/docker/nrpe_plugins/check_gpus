@@ -22,8 +22,8 @@ for(@gres){
 	my ($gputype, $count) = /gpu:(\w+):(\d+)/;
 	next unless defined $gputype;
         my $func = $funcs{$gputype};
-	my $ok = &$func($count);
-	finish("CRITICAL", "$gputype not found") unless $ok;
+	my $msg = &$func($count);
+	finish("CRITICAL", "$gputype $msg") if defined $msg;
 }
 
 finish('OK', "All GPUs verified");
@@ -32,20 +32,31 @@ finish('OK', "All GPUs verified");
 sub gpu_nvidia {
 	my $count = shift;
 	my @gpus = `nvidia-smi -L`;
-	return scalar(@gpus) == $count;
+	my $found = scalar @gpus;
+        return "Configured ($count) != Found ($found)" if $found != $count;
+        return;
 }
 
 sub gpu_amd {
-	my $count = shift;
-	my @gpus = grep {/^card\d+,/}
-                   `rocm-smi --showproductname --csv`;
-	return scalar(@gpus) == $count;
+   my $nconfig = shift;
+   my @gpus = map {(split /,/)[2]} grep {/^card\d+,/} `rocm-smi --showproductname --csv`;
+   my $nfound = scalar @gpus;
+   return "Configured ($nconfig) != Found ($nfound)" if $nconfig != $nfound;
+
+   my $rocminfo = `rocminfo`;
+   for(@gpus){
+      my $id = $_;
+      return "ID ($id) missing in rocminfo" unless $rocminfo =~ /\($id\)/;
+   }
+   return;
 }
 
 sub gpu_intel {
 	my $count = shift;
-	my @gpus = grep {/Device #\d+/} `clinfo -l`;
-	return scalar(@gpus) == $count;
+	my @gpus = grep {/Device #\d+.*Intel/} `clinfo -l`;
+	my $found = scalar @gpus;
+	return "Configured ($count) != Found ($found)" if $found != $count;
+	return;
 }
 
 sub finish {
