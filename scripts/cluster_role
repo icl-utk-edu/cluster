@@ -5,6 +5,7 @@ use warnings;
 use Newton;
 use Getopt::Long;
 use Digest::MD5 'md5_hex';
+use Data::Dumper;
 
 my $basedir = Newton::basedir();
 

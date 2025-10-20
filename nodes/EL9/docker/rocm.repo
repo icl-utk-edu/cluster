@@ -1,6 +1,7 @@
 [amdgpu]
 name=amdgpu
-baseurl=https://repo.radeon.com/amdgpu/6.3.2/rhel/9.4/main/x86_64/
+baseurl=https://repo.radeon.com/amdgpu/6.4.3/rhel/9.4/main/x86_64/
+#baseurl=https://repo.radeon.com/amdgpu/6.3.2/rhel/9.4/main/x86_64/
 #baseurl=https://repo.radeon.com/amdgpu/5.7.3/rhel/9.2/main/x86_64/
 #baseurl=https://repo.radeon.com/amdgpu/.5.7.1/rhel/9.2/main/x86_64/
 #baseurl=https://repo.radeon.com/amdgpu/latest/rhel/9.1/main/x86_64/
@@ -9,7 +10,8 @@ gpgcheck=0
 
 [rocm]
 name=rocm
-baseurl=https://repo.radeon.com/rocm/rhel9/6.3.2/main/
+baseurl=https://repo.radeon.com/rocm/rhel9/6.4.3/main/
+#baseurl=https://repo.radeon.com/rocm/rhel9/6.3.2/main/
 #baseurl=https://repo.radeon.com/rocm/rhel9/5.7.3/main/
 #baseurl=https://repo.radeon.com/rocm/rhel9/.yum_5.7.1/main/
 #baseurl=http://repo.radeon.com/rocm/rhel9/5.5.1/main/

@@ -106,6 +106,13 @@ RUN --mount=type=cache,target=/var/cache/dnf \
        for lib in `find /usr/lib64/libnvidia-*.so.570*`; do \
           ln -s $lib ${lib//\.so\.570*/\.so} ; \
        done ; \
+    elif [ $CUDAVER = "13" ]; then \
+       DRIVER=580.65.06-1 && \
+       dnf -y module enable nvidia-driver:580-dkms && \
+       dnf -y install cuda-toolkit-13-0 nvidia-fabricmanager-$DRIVER nvidia-container-toolkit nvidia-driver-$DRIVER.el9 nvidia-driver-cuda-$DRIVER.el9 nvidia-modprobe-$DRIVER.el9 && \
+       for lib in `find /usr/lib64/libnvidia-*.so.580*`; do \
+          ln -s $lib ${lib//\.so\.580*/\.so} ; \
+       done ; \
     fi
 RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
 RUN if [ "$KERNEL" != "3" ];then systemctl enable nvidia-persistenced; fi
@@ -141,7 +148,7 @@ RUN rm /etc/NetworkManager/system-connections/*
 COPY --from=common motd /etc/
 
 ARG MODULE=tcl
-RUN dnf -y install environment-modules
+RUN if [ "$MODULE" = "tcl" ]; then dnf -y install environment-modules; fi
 COPY env-$MODULE.* prompt.sh /etc/profile.d/
 
 COPY docker.repo /etc/yum.repos.d/
@@ -203,7 +210,7 @@ RUN systemctl disable nrpe
 COPY nrpe.cfg /etc/nagios/
 COPY nrpe_plugins /etc/nagios/plugins
 RUN echo "nrpe ALL = (root) NOPASSWD: /etc/nagios/plugins/check_temperature" > /etc/sudoers.d/nrpe
-
+RUN usermod -a -G video nrpe
 
 COPY inventory.sh /etc/cron.daily/
 RUN echo "files /etc/cron.daily/inventory.sh" >> /etc/rwtab

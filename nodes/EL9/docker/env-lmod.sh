@@ -1,5 +1,8 @@
-if [[ ! $USER = "root" ]]; then
-   . /apps/spacks/current/opt/spack/*/*/lmod-*/lmod/lmod/init/profile
-   export MODULEPATH=/apps/rocm/Modulefiles:/apps/spacks/current/share/spack/lmod/linux-rocky9-x86_64/Core
+
+if [ $USER != "root" ]; then
+   SRC=/apps/spacks/2025-08-22
+   source `ls $SRC/opt/spack/linux-x86_64/lmod-*/lmod/lmod/init/bash | head -1`
+   export MODULEPATH=$SRC/share/spack/modules/envs:/apps/rocm/Modulefiles
+   module load env
 fi
 
