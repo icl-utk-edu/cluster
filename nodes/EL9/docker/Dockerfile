@@ -76,7 +76,8 @@ RUN dnf -y install dracut-network rpcbind nfs-utils NetworkManager
 # Install Intel GPU support
 COPY intel-gpu.repo /etc/yum.repos.d/
 # The intel driver will so far only work with the default OS kernel
-RUN if [ $KERNEL = "default" ]; then \
+#RUN if [ $KERNEL = "default" ]; then \
+RUN \
        dnf -y --enablerepo=intel --nobest install intel-fw-gpu intel-i915-dkms xpu-smi \
           intel-opencl intel-media intel-mediasdk libmfxgen1 libvpl2 \
           level-zero intel-level-zero-gpu mesa-dri-drivers mesa-vulkan-drivers \
@@ -85,8 +86,8 @@ RUN if [ $KERNEL = "default" ]; then \
           intel-metrics-library intel-igc-core intel-igc-cm \
           libva libva-utils intel-gmmlib libmetee intel-gsc intel-ocloc \
           intel-igc-opencl-devel level-zero-devel intel-gsc-devel libmetee-devel level-zero-devel \
-          libdrm hwinfo clinfo intel-ocloc; \
-    fi
+          libdrm hwinfo clinfo intel-ocloc; 
+#    fi
 
 RUN echo "keepcache=1" >> /etc/dnf/dnf.conf
 # Install CUDA
@@ -189,7 +190,7 @@ RUN wget -O - https://github.com/zfsonlinux/zfs-auto-snapshot/archive/upstream/1
 COPY cron.d /etc/cron.d
 
 RUN echo "%admins ALL=(ALL) ALL" > /etc/sudoers.d/admins
-RUN echo "%papi histamine*,dopamine,serotonin=(ALL) ALL" > /etc/sudoers.d/papi
+RUN echo "%papi guyot,hexane,histamine*,dopamine,serotonin=(ALL) ALL" > /etc/sudoers.d/papi
 
 # Remove memlock limit for MPI
 COPY limits.conf /etc/security/

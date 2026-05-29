@@ -50,11 +50,12 @@ docker build --progress=plain -t $IMAGE \
 	--build-arg HASH=$HASH \
 	$ARGS $DOCKER
 
-docker remove temp || true
+docker rm temp || true
 docker run -i --name temp $IMAGE sleep 0
 mkdir -p $ROOTFS
 cd $ROOTFS
 docker export temp | tar -x
+docker rm temp
 
 echo -e "search cluster\nnameserver $(host headnode | awk '{print $4}')" > etc/resolv.conf
 

@@ -16,11 +16,12 @@ elif [[ $VERSION = '66' ]]; then
    KVER=6.6.1-1.el9.elrepo.x86_64
    dnf -y --enablerepo=elrepo-kernel-archive install kernel-ml-$KVER kernel-ml-devel-$KVER
 elif [[ $VERSION = 'default' ]]; then
-   KVER=5.14.0-362.24.1.el9_3.0.1.x86_64
+   #KVER=5.14.0-362.24.1.el9_3.0.1.x86_64
+   KVER=5.14.0-611.54.1.el9_7.x86_64
    dnf -y --enablerepo=vault\* install kernel-$KVER kernel-devel-matched-$KVER
    #KVER=`rpm -q kernel | sed 's/kernel-//'`
 elif [[ $VERSION = '61' ]]; then
-   KVER=6.1.147-1.el9.elrepo.x86_64
+   KVER=6.1.170-1.el9.elrepo.x86_64
    dnf -y --enablerepo=elrepo-kernel-archive install kernel-lt-$KVER kernel-lt-devel-$KVER
 else
    echo "Invalid kernel version specified!"

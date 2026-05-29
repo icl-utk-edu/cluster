@@ -7,8 +7,7 @@ use warnings;
 use lib '/usr/lib64/nagios/plugins';
 use utils '%ERRORS';
 
-my $sensor = 'Temp_Ambient_FP';
-my $warn_temperature = 27;
+my ($sensor, $warn_temperature) = (@ARGV, 'Temp_Ambient_FP', 27);
 
 my ($temperature) = `ipmitool sensor get "$sensor"` =~ /Reading\s+: (\d+)/s;
 
