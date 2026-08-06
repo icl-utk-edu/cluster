@@ -126,6 +126,7 @@ COPY rocm.repo /etc/yum.repos.d/
 RUN --mount=type=cache,target=/var/cache/dnf \
        if [ "$KERNEL" != "3" ]; then \
        dnf -y --enablerepo=crb install amdgpu-dkms rocm rocm-llvm-devel; \
+       dnf -y install rocm-validation-suite; \
     fi
 
 #dnf -y --enablerepo=crb install perl-File-BaseDir perl-URI-Encode && \
