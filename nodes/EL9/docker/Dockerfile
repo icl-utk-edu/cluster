@@ -1,4 +1,4 @@
-FROM rockylinux:9
+FROM rockylinux/rockylinux:9
 
 ENV ROLE=EL9
 
@@ -76,7 +76,7 @@ RUN dnf -y install dracut-network rpcbind nfs-utils NetworkManager
 # Install Intel GPU support
 COPY intel-gpu.repo /etc/yum.repos.d/
 # The intel driver will so far only work with the default OS kernel
-#RUN if [ $KERNEL = "default" ]; then \
+RUN if [ $KERNEL = "default" ]; then \
 RUN \
        dnf -y --enablerepo=intel --nobest install intel-fw-gpu intel-i915-dkms xpu-smi \
           intel-opencl intel-media intel-mediasdk libmfxgen1 libvpl2 \
@@ -86,8 +86,8 @@ RUN \
           intel-metrics-library intel-igc-core intel-igc-cm \
           libva libva-utils intel-gmmlib libmetee intel-gsc intel-ocloc \
           intel-igc-opencl-devel level-zero-devel intel-gsc-devel libmetee-devel level-zero-devel \
-          libdrm hwinfo clinfo intel-ocloc; 
-#    fi
+          libdrm hwinfo clinfo intel-ocloc; \
+    fi
 
 RUN echo "keepcache=1" >> /etc/dnf/dnf.conf
 # Install CUDA
@@ -117,9 +117,6 @@ RUN --mount=type=cache,target=/var/cache/dnf \
     fi
 RUN echo 'options nvidia "NVreg_RestrictProfilingToAdminUsers=0"' > /etc/modprobe.d/nv.conf
 RUN if [ "$KERNEL" != "3" ];then systemctl enable nvidia-persistenced; fi
-
-RUN dnf -y install dkms && \
-    dkms autoinstall -k `cat /boot/kver`
 
 # Install rocm
 COPY rocm.repo /etc/yum.repos.d/

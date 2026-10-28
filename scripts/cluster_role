@@ -52,6 +52,7 @@ if($available){
 
 my $hash = md5_hex("$role $variants");
 
+warn "$basedir/nodes/$role/images/$hash/config.ipxe";
 die "Role $role ($variants) is not available.\n"
   unless -e "$basedir/nodes/$role/images/$hash/config.ipxe";
 

@@ -48,7 +48,8 @@ docker build --progress=plain -t $IMAGE \
 	--build-context common=$BASEDIR/nodes/common \
 	--build-context ssh_root=/root/.ssh \
 	--build-arg HASH=$HASH \
-	$ARGS $DOCKER
+	$ARGS $DOCKER \
+        || echo Failed on $NAME $VARIANTS && exit 1
 
 docker rm temp || true
 docker run -i --name temp $IMAGE sleep 0
