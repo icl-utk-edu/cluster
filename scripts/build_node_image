@@ -49,13 +49,14 @@ docker build --progress=plain -t $IMAGE \
 	--build-context ssh_root=/root/.ssh \
 	--build-arg HASH=$HASH \
 	$ARGS $DOCKER \
-        || echo Failed on $NAME $VARIANTS && exit 1
+	|| ( echo Failed on $NAME $VARIANTS && exit 1 )
 
 docker rm temp || true
 docker run -i --name temp $IMAGE sleep 0
 mkdir -p $ROOTFS
 cd $ROOTFS
 docker export temp | tar -x
+sleep 10
 docker rm temp
 
 echo -e "search cluster\nnameserver $(host headnode | awk '{print $4}')" > etc/resolv.conf

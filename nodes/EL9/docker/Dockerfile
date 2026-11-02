@@ -66,7 +66,7 @@ RUN dnf -y install zsh vim neovim tmux screen man emacs-nox xauth rsync java-11-
 
 # Install kernel
 ARG KERNEL=default
-COPY custom.repo vault.repo /etc/yum.repos.d/
+COPY custom.repo /etc/yum.repos.d/
 COPY kernel.sh /tmp/
 RUN /tmp/kernel.sh $KERNEL && rm /tmp/kernel.sh
 RUN echo 'excludepkgs=kernel,kernel-devel' >> /etc/dnf/dnf.conf
@@ -77,7 +77,6 @@ RUN dnf -y install dracut-network rpcbind nfs-utils NetworkManager
 COPY intel-gpu.repo /etc/yum.repos.d/
 # The intel driver will so far only work with the default OS kernel
 RUN if [ $KERNEL = "default" ]; then \
-RUN \
        dnf -y --enablerepo=intel --nobest install intel-fw-gpu intel-i915-dkms xpu-smi \
           intel-opencl intel-media intel-mediasdk libmfxgen1 libvpl2 \
           level-zero intel-level-zero-gpu mesa-dri-drivers mesa-vulkan-drivers \
@@ -142,7 +141,7 @@ RUN dracut --force --add nfs --no-hostonly --kver `cat /boot/kver`
 RUN chmod 644 /boot/initramfs*.img
 RUN ls /lib/modules/*/vmlinuz | xargs -n1 dirname | xargs -n1 basename | xargs -Iggg cp /lib/modules/ggg/vmlinuz /boot/vmlinuz-ggg
 
-RUN rm /etc/NetworkManager/system-connections/*
+RUN rm /etc/NetworkManager/system-connections/* || true
 
 COPY --from=common motd /etc/
 

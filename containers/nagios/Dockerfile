@@ -1,5 +1,6 @@
-FROM rockylinux:9
+FROM rockylinux/rockylinux:9
 
+RUN dnf -y update
 RUN dnf -y install epel-release && \
     dnf -y install nagios httpd mod_ldap sudo && \
     echo tcp nrpe rpc | xargs -n1 | xargs -Iggg dnf -y install nagios-plugins-ggg

@@ -34,4 +34,5 @@ RUN chmod 644 /boot/initramfs*.img
 
 RUN yum clean all
 
+COPY config.ipxe /boot/
 

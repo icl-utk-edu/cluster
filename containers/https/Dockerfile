@@ -1,5 +1,6 @@
-FROM rockylinux:9
+FROM rockylinux/rockylinux:9
 
+RUN dnf -y update
 RUN dnf -y install epel-release
 RUN dnf -y install httpd mod_ssl certbot python3-certbot-apache
 RUN rm /etc/httpd/conf.d/welcome.conf

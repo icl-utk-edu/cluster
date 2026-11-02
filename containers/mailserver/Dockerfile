@@ -1,5 +1,6 @@
-FROM rockylinux:9
+FROM rockylinux/rockylinux:9
 
+RUN dnf -y update
 RUN dnf -y install postfix
 COPY main.cf /etc/postfix/
 

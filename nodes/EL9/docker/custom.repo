@@ -1,6 +1,6 @@
-[elrepo-kernel-archive]
-name=ELRepo kernel archive
-baseurl=http://linux-mirrors.fnal.gov/linux/elrepo/archive/kernel/el9/x86_64
+[netlib-kernel-archive]
+name=Netlib kernel archive
+baseurl=https://netlib.org/linux/kernel/
 enabled=0
 gpgcheck=0
 
@@ -36,4 +36,22 @@ name=Extra Packages for Enterprise Linux 7 - $basearch
 metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch&infra=$infra&content=$contentdir
 enabled=0
 gpgcheck=0
+
+[vault]
+name=Vault
+baseurl=https://dl.rockylinux.org/vault/rocky/9.3/BaseOS/x86_64/os/
+gpgcheck=1
+enabled=0
+countme=1
+metadata_expire=6h
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9
+
+[vault-appstream]
+name=Vault-Appstream
+baseurl=https://dl.rockylinux.org/vault/rocky/9.3/AppStream/x86_64/os/
+gpgcheck=1
+enabled=0
+countme=1
+metadata_expire=6h
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9
 

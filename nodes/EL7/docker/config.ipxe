@@ -1,0 +1,7 @@
+#!ipxe
+
+# switch to us ${cwduri}
+
+initrd /EL9/images/HASH/initrd
+chain /EL9/images/HASH/kernel initrd=initrd root=nfs:10.0.0.1:/cluster/nodes/EL9/images/HASH/rootfs selinux=0 ip=dhcp ipmi_si.force_kipmid=0 numa_balancing=disable
+
