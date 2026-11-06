@@ -1,0 +1,8 @@
+COPY docker.repo /etc/yum.repos.d/
+RUN groupadd -g 1001 docker
+RUN dnf -y install docker-ce && \
+    mkdir /var/lib/docker /var/lib/containerd && \
+    echo empty /var/lib/containerd >> /etc/rwtab
+COPY docker-daemon.json /etc/docker/daemon.json
+# Docker and containerd are started by rc.local
+

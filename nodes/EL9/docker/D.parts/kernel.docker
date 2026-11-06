@@ -1,0 +1,8 @@
+# Install kernel
+ARG KERNEL=default
+COPY custom.repo /etc/yum.repos.d/
+COPY kernel.sh /tmp/
+RUN /tmp/kernel.sh $KERNEL && rm /tmp/kernel.sh
+RUN echo 'excludepkgs=kernel,kernel-devel' >> /etc/dnf/dnf.conf
+RUN dnf -y install dracut-network rpcbind nfs-utils NetworkManager
+

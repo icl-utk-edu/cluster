@@ -1,0 +1,4 @@
+# Fail2ban
+RUN dnf -y install fail2ban
+COPY jail.local /etc/fail2ban/
+COPY fail2ban /etc/rc.d/rc3.d/

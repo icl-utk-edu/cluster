@@ -1,0 +1,10 @@
+# Nagios
+RUN echo swap load perl \
+    | xargs -n1 | xargs -Iggg echo nagios-plugins-ggg | xargs dnf -y install nrpe
+# Disable nrpe because systemd causes it to not work correctly.  Start in rc.local.
+RUN systemctl disable nrpe
+COPY nrpe.cfg /etc/nagios/
+COPY nrpe_plugins /etc/nagios/plugins
+RUN echo "nrpe ALL = (root) NOPASSWD: /etc/nagios/plugins/check_temperature" > /etc/sudoers.d/nrpe
+RUN usermod -a -G video nrpe
+

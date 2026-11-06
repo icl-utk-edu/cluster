@@ -1,0 +1,15 @@
+RUN dnf -y install cronie && \
+    rm -f /etc/cron.deny
+RUN wget -O - https://github.com/zfsonlinux/zfs-auto-snapshot/archive/upstream/1.2.4.tar.gz | tar -zx && \
+    cd zfs-auto-snapshot* && \
+    make install && \
+    cd .. && rm -rf zfs-auto-snapshot* && \
+    ln -s /usr/local/sbin/zfs-auto-snapshot /usr/sbin/ && \
+    rm /etc/cron.monthly/zfs-auto-snapshot && \
+    sed -i 's/\/\//mnt\/apps mnt\/home/' /etc/cron.*/zfs-auto-snapshot
+COPY cron.d /etc/cron.d
+
+
+COPY inventory.sh /etc/cron.daily/
+RUN echo "files /etc/cron.daily/inventory.sh" >> /etc/rwtab
+

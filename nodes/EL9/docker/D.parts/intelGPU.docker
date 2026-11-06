@@ -1,0 +1,16 @@
+# Install Intel GPU support
+COPY intel-gpu.repo /etc/yum.repos.d/
+# The intel driver will so far only work with the default OS kernel
+RUN --mount=type=cache,target=/var/cache/dnf \
+    if [ $KERNEL = "default" ]; then \
+       dnf -y --enablerepo=intel --nobest install intel-fw-gpu intel-i915-dkms xpu-smi \
+          intel-opencl intel-media intel-mediasdk libmfxgen1 libvpl2 \
+          level-zero intel-level-zero-gpu mesa-dri-drivers mesa-vulkan-drivers \
+          mesa-vdpau-drivers mesa-libEGL mesa-libgbm mesa-libGL \
+          mesa-libxatracker libvpl-tools intel-metrics-discovery \
+          intel-metrics-library intel-igc-core intel-igc-cm \
+          libva libva-utils intel-gmmlib libmetee intel-gsc intel-ocloc \
+          intel-igc-opencl-devel level-zero-devel intel-gsc-devel libmetee-devel level-zero-devel \
+          libdrm hwinfo clinfo intel-ocloc; \
+    fi
+

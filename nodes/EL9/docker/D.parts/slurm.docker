@@ -1,0 +1,18 @@
+# Slurm
+RUN dnf -y install epel-release && \
+    dnf -y install slurm-slurmd slurm-pam_slurm munge pmix-devel
+RUN touch /etc/slurm/gres.conf
+RUN echo files /etc/slurm/gres.conf >> /etc/rwtab
+COPY --from=etc slurm/slurm.conf slurm/cgroup.conf /etc/slurm/
+COPY slurmd.service /usr/lib/systemd/system/
+COPY slurmd_startup /usr/sbin/
+RUN systemctl enable munge
+RUN useradd --no-create-home --system -g daemon --uid 9 slurm
+COPY --from=etc --chown=munge:munge munge/munge.key /etc/munge/
+
+# Slurm PAM adopt config
+RUN touch /etc/pam.d/slurm
+RUN echo "files /etc/pam.d/slurm" >> /etc/rwtab  # slurmd_startup writes here
+COPY pam.d-password-auth /etc/pam.d/password-auth
+#RUN sed -i -e '/systemd/ s/^#*/#/' /etc/pam.d/* /etc/authselect/*-auth
+

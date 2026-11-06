@@ -1,0 +1,4 @@
+# Ganglia
+RUN dnf -y install ganglia-gmond && \
+    systemctl enable gmond
+COPY gmond.conf /etc/ganglia/

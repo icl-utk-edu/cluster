@@ -41,6 +41,19 @@ fi
 
 IMAGE=node_image_$HASH
 
+##### Process the Dockerfile INCLUDE statements #####
+TMPDOCKERFILE="$DOCKER/Dockerfile.tmp"
+rm -f $TMPDOCKERFILE
+while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" =~ ^INCLUDE[[:space:]]+([^[:space:]]+) ]]; then
+            include_file="${BASH_REMATCH[1]}"
+            cat "$DOCKER/D.parts/$include_file.docker" >> $TMPDOCKERFILE
+    else
+            echo "$line" >> $TMPDOCKERFILE
+    fi
+done < "$DOCKER/Dockerfile"
+#####################################################
+
 docker build --progress=plain -t $IMAGE \
 	--ulimit nofile=1024000:1024000 \
 	--build-context etc=/etc \
@@ -48,9 +61,11 @@ docker build --progress=plain -t $IMAGE \
 	--build-context common=$BASEDIR/nodes/common \
 	--build-context ssh_root=/root/.ssh \
 	--build-arg HASH=$HASH \
+	-f $TMPDOCKERFILE \
 	$ARGS $DOCKER \
 	|| ( echo Failed on $NAME $VARIANTS && exit 1 )
 
+rm $TMPDOCKERFILE
 docker rm temp || true
 docker run -i --name temp $IMAGE sleep 0
 mkdir -p $ROOTFS

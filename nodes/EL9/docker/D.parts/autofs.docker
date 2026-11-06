@@ -1,0 +1,7 @@
+RUN dnf -y install autofs && \
+    systemctl enable autofs && \
+    rm -rf /etc/auto.* && \
+    echo "/nfs /etc/auto.nfs" > /etc/auto.master && \
+    mkdir -p /nfs
+COPY auto.nfs /etc/
+
